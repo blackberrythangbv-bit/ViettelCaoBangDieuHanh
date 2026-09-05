@@ -16,7 +16,7 @@ jobs:
 
       - name: Unzip Android project
         run: |
-          unzip -o ViettelCaoBangDieuHanh_MVP_0.1_buildready.zip -d extracted
+          unzip -o ViettelCaoBangDieuHanh_MVP_0.2_JVM17.zip -d extracted
           echo "Extracted files:"
           find extracted -maxdepth 3 -type f | head -100
 
