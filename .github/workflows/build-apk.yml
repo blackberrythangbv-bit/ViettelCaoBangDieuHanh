@@ -1,26 +1,23 @@
-name: Build Android APK v0.5 REALDATA
+name: Build Android APK v0.8 REALTIME
 
 on:
   workflow_dispatch:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 jobs:
   build:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Unzip v0.5 project
+      - name: Unzip v0.8 realtime project
         run: |
           rm -rf extracted
           mkdir extracted
-          unzip -o ViettelCaoBangDieuHanh_v0.5_REALDATA_TRIAL.zip -d extracted
-          echo "CHECK VERSION:"
-          grep -n "v0.5 dữ liệu thực" extracted/app/src/main/java/com/viettel/caobang/dieuhanh/MainActivity.kt
+          unzip -o ViettelCaoBangDieuHanh_v0.8_REALTIME.zip -d extracted
+          grep -n "v0.8 REALTIME" extracted/app/src/main/java/com/viettel/caobang/dieuhanh/data/SecureKpiRepository.kt
 
       - name: Setup Java 17
         uses: actions/setup-java@v4
@@ -33,15 +30,14 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Build v0.5 APK
+      - name: Build APK
         working-directory: extracted
-        run: |
-          gradle :app:assembleDebug --no-daemon
-          ls -lh app/build/outputs/apk/debug/
+        run: gradle :app:assembleDebug --no-daemon
 
-      - name: Upload v0.5 APK
+      - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ViettelCaoBangDieuHanh-v0.5-REALDATA-APK
+          name: ViettelCaoBangDieuHanh-v0.8-REALTIME-APK
           path: extracted/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+
