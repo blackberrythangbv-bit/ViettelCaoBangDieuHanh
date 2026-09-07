@@ -32,11 +32,16 @@ jobs:
           cp -R /tmp/kpi_src/lib ./lib
           cp /tmp/kpi_src/pubspec.yaml ./pubspec.yaml
 
-      - name: Enable Android network access and label
+      - name: Patch source and Android settings
         working-directory: kpi_mobile_app
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          p=Path('lib/main.dart')
+          s=p.read_text()
+          s=s.replace("])):_body());", "]))):_body());")
+          p.write_text(s)
+
           p=Path('android/app/src/main/AndroidManifest.xml')
           s=p.read_text()
           if 'android.permission.INTERNET' not in s:
