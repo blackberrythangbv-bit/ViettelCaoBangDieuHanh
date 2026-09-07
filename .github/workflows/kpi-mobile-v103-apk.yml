@@ -1,4 +1,4 @@
-name: Build KPI Mobile V1.0.6 Fast APK
+name: Build KPI Mobile V1.0.7 Balanced APK
 
 on:
   workflow_dispatch:
@@ -32,7 +32,7 @@ jobs:
           cp -R /tmp/kpi_src/lib ./lib
           cp /tmp/kpi_src/pubspec.yaml ./pubspec.yaml
 
-      - name: Patch fast loading and circular charts
+      - name: Patch balanced fast loading
         working-directory: kpi_mobile_app
         run: python3 ../tools/patch_fast.py
 
@@ -51,7 +51,7 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Viettel-CaoBang-KPI-v1.0.6-fast-apk
+          name: Viettel-CaoBang-KPI-v1.0.7-balanced-apk
           path: kpi_mobile_app/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 14
