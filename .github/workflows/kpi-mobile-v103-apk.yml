@@ -1,4 +1,4 @@
-name: Build KPI Mobile V1.0.3 APK
+name: Build KPI Mobile V1.0.5 APK
 
 on:
   workflow_dispatch:
@@ -32,14 +32,56 @@ jobs:
           cp -R /tmp/kpi_src/lib ./lib
           cp /tmp/kpi_src/pubspec.yaml ./pubspec.yaml
 
-      - name: Patch source and Android settings
+      - name: Patch circular KPI charts and Android settings
         working-directory: kpi_mobile_app
         run: |
           python3 - <<'PY'
           from pathlib import Path
+          import re
+
           p=Path('lib/main.dart')
           s=p.read_text()
-          s=s.replace("])):_body());", "]))):_body());")
+          if "import 'donut.dart';" not in s:
+              s=s.replace("import 'data.dart';", "import 'data.dart';\nimport 'donut.dart';")
+
+          home_pattern = re.compile(
+              r"_title\('1\. Tóm tắt kết quả toàn tỉnh'\),.*?_title\('2\. Đánh giá & cảnh báo'\),",
+              re.S,
+          )
+          home_repl = """_title('1. Tóm tắt kết quả toàn tỉnh'),
+          KpiDonutGrid(
+            monthTh: totalTh,
+            monthKh: totalKh,
+            weekTh: totalWeekTh,
+            weekKh: totalWeekKh,
+            monthElapsed: monthElapsedRatio(now),
+            weekElapsed: weekElapsedRatio(now),
+          ),
+          _title('2. Đánh giá & cảnh báo'),"""
+          s, n1 = home_pattern.subn(home_repl, s, count=1)
+          if n1 != 1:
+              raise SystemExit('Không patch được dashboard donut')
+
+          am_pattern = re.compile(
+              r"Text\('Tuần hiện tại: Tuần \$\{wi \+ 1\}'.*?\n\s*\.\.\.List\.generate\(.*?\n\s*\),\n\s*\],\n\s*\);",
+              re.S,
+          )
+          am_repl = """Text('Tuần hiện tại: Tuần ${wi + 1}', style: const TextStyle(fontSize: 19, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 10),
+        KpiDonutGrid(
+          monthTh: a.th,
+          monthKh: a.kh,
+          weekTh: wa,
+          weekKh: wp,
+          monthElapsed: monthElapsedRatio(now),
+          weekElapsed: weekElapsedRatio(now),
+        ),
+      ],
+    );"""
+          s, n2 = am_pattern.subn(am_repl, s, count=1)
+          if n2 != 1:
+              raise SystemExit('Không patch được donut từng AM')
+
           p.write_text(s)
 
           p=Path('android/app/src/main/AndroidManifest.xml')
@@ -66,7 +108,7 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Viettel-CaoBang-KPI-v1.0.3-apk
+          name: Viettel-CaoBang-KPI-v1.0.5-donut-apk
           path: kpi_mobile_app/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 14
