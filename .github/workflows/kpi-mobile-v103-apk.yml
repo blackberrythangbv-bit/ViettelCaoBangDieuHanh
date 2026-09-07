@@ -1,4 +1,4 @@
-name: Build KPI Mobile V1.0.7 Balanced APK
+name: Build KPI Mobile V1.1.0 Auth APK
 
 on:
   workflow_dispatch:
@@ -36,6 +36,10 @@ jobs:
         working-directory: kpi_mobile_app
         run: python3 ../tools/patch_fast.py
 
+      - name: Patch auth and permissions
+        working-directory: kpi_mobile_app
+        run: python3 ../tools/patch_auth_v110.py
+
       - name: Dependencies
         working-directory: kpi_mobile_app
         run: flutter pub get
@@ -51,7 +55,7 @@ jobs:
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: Viettel-CaoBang-KPI-v1.0.7-balanced-apk
+          name: Viettel-CaoBang-KPI-v1.1.0-auth-apk
           path: kpi_mobile_app/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 14
