@@ -6,8 +6,15 @@ import 'data.dart';
 
 const apiEndpoint = 'https://script.google.com/macros/s/AKfycbxwDT_LV1D49SKfZkv0_CfmBcRcpubbJGnd9TFBL5b1y0AHQ-a1zbRQf83CBWDeRkaApQ/exec';
 
+class BootstrapData {
+  const BootstrapData({required this.all, required this.targets});
+  final Map<String, AmData> all;
+  final Map<String, AmTarget> targets;
+}
+
 class Api {
   static const timeout = Duration(seconds: 15);
+  static const bootstrapProbeTimeout = Duration(seconds: 5);
   static const _allCacheKey = 'kpi_all_v1';
   static const _targetsCacheKey = 'kpi_targets_v1';
   static final http.Client _client = http.Client();
@@ -68,6 +75,14 @@ class Api {
     }
   }
 
+  Future<BootstrapData?> cachedBootstrap() async {
+    final r = await Future.wait([cachedAll(), cachedTargets()]);
+    final a = r[0] as Map<String, AmData>?;
+    final t = r[1] as Map<String, AmTarget>?;
+    if (a == null || t == null || a.isEmpty || t.isEmpty) return null;
+    return BootstrapData(all: a, targets: t);
+  }
+
   Future<Map<String, AmData>> all() async {
     final r = await _client.get(uri('getAllAmData')).timeout(timeout);
     final raw = unwrap(r);
@@ -80,6 +95,39 @@ class Api {
     final raw = unwrap(r);
     unawaited(_saveCache(_targetsCacheKey, raw));
     return _parseTargets(raw);
+  }
+
+  /// Phương án B:
+  /// - Có cache: giao diện hiển thị ngay, sau đó thử 1 request bootstrap ở nền.
+  /// - Backend chưa có bootstrap: tự fallback về 2 request song song cũ.
+  /// - Lần mở đầu tiên chưa có cache: bỏ qua probe bootstrap để không làm chậm.
+  Future<BootstrapData> bootstrap({bool probeBootstrap = true}) async {
+    if (probeBootstrap) {
+      try {
+        final r = await _client
+            .get(uri('bootstrap'))
+            .timeout(bootstrapProbeTimeout);
+        final raw = unwrap(r) as Map;
+        final allRaw = raw['all'];
+        final targetsRaw = raw['targets'];
+        if (allRaw is Map && targetsRaw is Map) {
+          unawaited(_saveCache(_allCacheKey, allRaw));
+          unawaited(_saveCache(_targetsCacheKey, targetsRaw));
+          return BootstrapData(
+            all: _parseAll(allRaw),
+            targets: _parseTargets(targetsRaw),
+          );
+        }
+      } catch (_) {
+        // Backend chưa triển khai bootstrap: fallback an toàn bên dưới.
+      }
+    }
+
+    final r = await Future.wait([all(), targets()]);
+    return BootstrapData(
+      all: r[0] as Map<String, AmData>,
+      targets: r[1] as Map<String, AmTarget>,
+    );
   }
 
   Future<void> _saveCache(String key, dynamic raw) async {
