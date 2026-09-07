@@ -1,0 +1,85 @@
+name: Build KPI Mobile iOS V1.0.1 Balanced
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - kpi-mobile-v1.0.3-build
+    paths:
+      - '.github/workflows/kpi-mobile-ios-v101.yml'
+      - 'tools/patch_ios_v101.py'
+      - 'kpi_mobile_app/**'
+
+jobs:
+  build-ios:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Create iOS project
+        run: |
+          rm -rf /tmp/kpi_ios_src
+          mkdir -p /tmp/kpi_ios_src/lib
+          cp kpi_mobile_app/pubspec.yaml /tmp/kpi_ios_src/pubspec.yaml
+          cp kpi_mobile_app/lib/*.dart /tmp/kpi_ios_src/lib/
+          cd kpi_mobile_app
+          flutter create --platforms=ios --org vn.viettel.caobang --project-name viettel_cao_bang_kpi .
+          rm -rf lib test
+          cp -R /tmp/kpi_ios_src/lib ./lib
+          cp /tmp/kpi_ios_src/pubspec.yaml ./pubspec.yaml
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path('pubspec.yaml')
+          s=p.read_text()
+          import re
+          s=re.sub(r'^version:.*$', 'version: 1.0.1+1', s, flags=re.M)
+          p.write_text(s)
+          PY
+
+      - name: Patch Phuong an B for iOS
+        working-directory: kpi_mobile_app
+        run: python3 ../tools/patch_ios_v101.py
+
+      - name: Dependencies
+        working-directory: kpi_mobile_app
+        run: flutter pub get
+
+      - name: Analyze
+        working-directory: kpi_mobile_app
+        run: flutter analyze --no-fatal-infos
+
+      - name: Build iPhone unsigned release
+        working-directory: kpi_mobile_app
+        run: flutter build ios --release --no-codesign
+
+      - name: Package unsigned iPhone app
+        working-directory: kpi_mobile_app
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent build/ios/iphoneos/Runner.app ../KPI_DNS_CaoBang_iOS_v1.0.1_unsigned.zip
+
+      - name: Build iOS Simulator app
+        working-directory: kpi_mobile_app
+        run: flutter build ios --simulator --debug
+
+      - name: Package iOS Simulator app
+        working-directory: kpi_mobile_app
+        run: |
+          ditto -c -k --sequesterRsrc --keepParent build/ios/iphonesimulator/Runner.app ../KPI_DNS_CaoBang_iOS_v1.0.1_simulator.zip
+
+      - name: Upload iOS test artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: Viettel-CaoBang-KPI-iOS-v1.0.1-balanced
+          path: |
+            KPI_DNS_CaoBang_iOS_v1.0.1_unsigned.zip
+            KPI_DNS_CaoBang_iOS_v1.0.1_simulator.zip
+          if-no-files-found: error
+          retention-days: 14
