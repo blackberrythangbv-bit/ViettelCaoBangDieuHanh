@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'data.dart';
+import 'session.dart';
 
 const apiEndpoint = 'https://script.google.com/macros/s/AKfycbxwDT_LV1D49SKfZkv0_CfmBcRcpubbJGnd9TFBL5b1y0AHQ-a1zbRQf83CBWDeRkaApQ/exec';
 
@@ -12,15 +13,36 @@ class BootstrapData {
   final Map<String, AmTarget> targets;
 }
 
+class AdminSaveResult {
+  const AdminSaveResult({required this.user, this.temporaryPassword});
+  final AuthUser user;
+  final String? temporaryPassword;
+}
+
 class Api {
   static const timeout = Duration(seconds: 15);
-  static const bootstrapProbeTimeout = Duration(seconds: 5);
-  static const _allCacheKey = 'kpi_all_v1';
-  static const _targetsCacheKey = 'kpi_targets_v1';
+  static const bootstrapProbeTimeout = Duration(seconds: 7);
   static final http.Client _client = http.Client();
 
-  Uri uri(String action, [Map<String, String>? q]) =>
-      Uri.parse(apiEndpoint).replace(queryParameters: {'action': action, ...?q});
+  String get _username => SessionStore.current?.user.username ?? 'guest';
+  String get _allCacheKey => 'kpi_all_v2_$_username';
+  String get _targetsCacheKey => 'kpi_targets_v2_$_username';
+
+  String _tokenOrThrow() {
+    final token = SessionStore.current?.token;
+    if (token == null || token.isEmpty) throw Exception('Phiên đăng nhập không hợp lệ');
+    return token;
+  }
+
+  Uri uri(
+    String action, [
+    Map<String, String>? q,
+    bool auth = true,
+  ]) {
+    final params = <String, String>{'action': action, ...?q};
+    if (auth) params['token'] = _tokenOrThrow();
+    return Uri.parse(apiEndpoint).replace(queryParameters: params);
+  }
 
   dynamic unwrap(http.Response r) {
     if (r.statusCode < 200 || r.statusCode >= 300) {
@@ -28,9 +50,105 @@ class Api {
     }
     final x = jsonDecode(r.body);
     if (x is! Map || x['ok'] != true) {
-      throw Exception(x is Map ? (x['error'] ?? 'Lỗi API') : 'Dữ liệu API không hợp lệ');
+      if (x is Map) {
+        final msg = x['message'] ?? x['error'] ?? x['code'] ?? 'Lỗi API';
+        throw Exception(msg.toString());
+      }
+      throw Exception('Dữ liệu API không hợp lệ');
     }
     return x['data'];
+  }
+
+  Future<dynamic> _post(
+    String action,
+    Map<String, dynamic> body, {
+    bool auth = true,
+  }) async {
+    final payload = <String, dynamic>{'action': action, ...body};
+    if (auth) payload['token'] = _tokenOrThrow();
+    final r = await _client
+        .post(
+          Uri.parse(apiEndpoint),
+          headers: {'Content-Type': 'application/json'},
+          body: jsonEncode(payload),
+        )
+        .timeout(timeout);
+    return unwrap(r);
+  }
+
+  Future<AuthSession> login(String username, String password) async {
+    final raw = await _post(
+      'login',
+      {'username': username.trim(), 'password': password},
+      auth: false,
+    );
+    final session = AuthSession.fromJson((raw as Map).cast<String, dynamic>());
+    await SessionStore.save(session);
+    return session;
+  }
+
+  Future<AuthUser> me() async {
+    final raw = unwrap(await _client.get(uri('me')).timeout(timeout));
+    final user = AuthUser.fromJson((raw as Map).cast<String, dynamic>());
+    final current = SessionStore.current;
+    if (current != null) await SessionStore.save(AuthSession(token: current.token, user: user));
+    return user;
+  }
+
+  Future<AuthSession> changePassword(String oldPassword, String newPassword) async {
+    final raw = await _post('changePassword', {
+      'oldPassword': oldPassword,
+      'newPassword': newPassword,
+    });
+    final session = AuthSession.fromJson((raw as Map).cast<String, dynamic>());
+    await SessionStore.save(session);
+    return session;
+  }
+
+  Future<List<AuthUser>> adminUsers() async {
+    final raw = unwrap(await _client.get(uri('adminUsers')).timeout(timeout));
+    final list = raw is List ? raw : const [];
+    return list
+        .whereType<Map>()
+        .map((x) => AuthUser.fromJson(x.cast<String, dynamic>()))
+        .toList();
+  }
+
+  Future<AdminSaveResult> adminUpsertUser({
+    required String username,
+    required String displayName,
+    required String scope,
+    required bool canEdit,
+    required bool canManageUsers,
+    required bool active,
+    String? password,
+  }) async {
+    final raw = await _post('adminUpsertUser', {
+      'user': {
+        'username': username.trim(),
+        'displayName': displayName.trim(),
+        'scope': scope,
+        'canEdit': canEdit,
+        'canManageUsers': canManageUsers,
+        'active': active,
+      },
+      if (password != null && password.isNotEmpty) 'password': password,
+    });
+    final m = (raw as Map).cast<String, dynamic>();
+    return AdminSaveResult(
+      user: AuthUser.fromJson((m['user'] as Map).cast<String, dynamic>()),
+      temporaryPassword: m['temporaryPassword']?.toString(),
+    );
+  }
+
+  Future<void> adminDeleteUser(String username) async {
+    await _post('adminDeleteUser', {'username': username});
+  }
+
+  Future<String> adminResetPassword(String username) async {
+    final raw = await _post('adminResetPassword', {'username': username});
+    final m = (raw as Map).cast<String, dynamic>();
+    return (m['temporaryPassword'] ?? '').toString();
   }
 
   Map<String, AmData> _parseAll(dynamic raw) {
@@ -97,16 +215,10 @@ class Api {
     return _parseTargets(raw);
   }
 
-  /// Phương án B:
-  /// - Có cache: giao diện hiển thị ngay, sau đó thử 1 request bootstrap ở nền.
-  /// - Backend chưa có bootstrap: tự fallback về 2 request song song cũ.
-  /// - Lần mở đầu tiên chưa có cache: bỏ qua probe bootstrap để không làm chậm.
   Future<BootstrapData> bootstrap({bool probeBootstrap = true}) async {
     if (probeBootstrap) {
       try {
-        final r = await _client
-            .get(uri('bootstrap'))
-            .timeout(bootstrapProbeTimeout);
+        final r = await _client.get(uri('bootstrap')).timeout(bootstrapProbeTimeout);
         final raw = unwrap(r) as Map;
         final allRaw = raw['all'];
         final targetsRaw = raw['targets'];
@@ -119,7 +231,7 @@ class Api {
           );
         }
       } catch (_) {
-        // Backend chưa triển khai bootstrap: fallback an toàn bên dưới.
+        // Fallback an toàn xuống 2 API song song.
       }
     }
 
@@ -135,7 +247,7 @@ class Api {
       final p = await SharedPreferences.getInstance();
       await p.setString(key, jsonEncode(raw));
     } catch (_) {
-      // Cache lỗi không được ảnh hưởng luồng dữ liệu thật.
+      // Cache không được ảnh hưởng dữ liệu thật.
     }
   }
 
@@ -147,21 +259,16 @@ class Api {
   }
 
   Future<void> save(String code, DateTime date, List<double?> values) async {
+    if (SessionStore.current?.user.canEdit != true) {
+      throw Exception('Tài khoản không có quyền nhập/sửa KPI');
+    }
     final ds =
         '${date.year.toString().padLeft(4, '0')}-${date.month.toString().padLeft(2, '0')}-${date.day.toString().padLeft(2, '0')}';
-    final r = await _client
-        .post(
-          Uri.parse(apiEndpoint),
-          headers: {'Content-Type': 'application/json'},
-          body: jsonEncode({
-            'action': 'saveEntry',
-            'amCode': code,
-            'dateStr': ds,
-            'values': values,
-          }),
-        )
-        .timeout(timeout);
-    unwrap(r);
+    await _post('saveEntry', {
+      'amCode': code,
+      'dateStr': ds,
+      'values': values,
+    });
 
     final refreshed = await one(code);
     final row = refreshed.daily[ds];
