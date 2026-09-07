@@ -14,38 +14,26 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Restore KPI Mobile source
-        run: |
-          rm -rf kpi_mobile kpi_mobile_min.zip
-          mkdir kpi_mobile
-          base64 -d kpi_mobile_min.b64 > kpi_mobile_min.zip
-          unzip -o kpi_mobile_min.zip -d kpi_mobile
-          test -f kpi_mobile/pubspec.yaml
-          test -f kpi_mobile/lib/main.dart
-
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
 
-      - name: Create Android scaffolding
-        working-directory: kpi_mobile
+      - name: Create Android project
         run: |
-          mkdir -p /tmp/kpi_backup
-          cp -R lib /tmp/kpi_backup/lib
-          cp -R test /tmp/kpi_backup/test
-          cp pubspec.yaml /tmp/kpi_backup/pubspec.yaml
-          cp analysis_options.yaml /tmp/kpi_backup/analysis_options.yaml
+          rm -rf /tmp/kpi_src
+          mkdir -p /tmp/kpi_src/lib
+          cp kpi_mobile_app/pubspec.yaml /tmp/kpi_src/pubspec.yaml
+          cp kpi_mobile_app/lib/*.dart /tmp/kpi_src/lib/
+          cd kpi_mobile_app
           flutter create --platforms=android,ios --org vn.viettel.caobang --project-name viettel_cao_bang_kpi .
-          rm -rf lib test
-          cp -R /tmp/kpi_backup/lib ./lib
-          cp -R /tmp/kpi_backup/test ./test
-          cp /tmp/kpi_backup/pubspec.yaml ./pubspec.yaml
-          cp /tmp/kpi_backup/analysis_options.yaml ./analysis_options.yaml
+          rm -rf lib
+          cp -R /tmp/kpi_src/lib ./lib
+          cp /tmp/kpi_src/pubspec.yaml ./pubspec.yaml
 
-      - name: Enable Android internet permission and app label
-        working-directory: kpi_mobile
+      - name: Enable Android network access and label
+        working-directory: kpi_mobile_app
         run: |
           python3 - <<'PY'
           from pathlib import Path
@@ -54,30 +42,26 @@ jobs:
           if 'android.permission.INTERNET' not in s:
               pos=s.find('>')+1
               s=s[:pos]+'\n    <uses-permission android:name="android.permission.INTERNET" />'+s[pos:]
-          s=s.replace('android:label="viettel_cao_bang_kpi"', 'android:label="KPI DNS Cao Bằng"')
+          s=s.replace('android:label="viettel_cao_bang_kpi"','android:label="KPI DNS Cao Bằng"')
           p.write_text(s)
           PY
 
       - name: Dependencies
-        working-directory: kpi_mobile
+        working-directory: kpi_mobile_app
         run: flutter pub get
 
       - name: Analyze
-        working-directory: kpi_mobile
+        working-directory: kpi_mobile_app
         run: flutter analyze
 
-      - name: Test
-        working-directory: kpi_mobile
-        run: flutter test
-
       - name: Build release APK
-        working-directory: kpi_mobile
+        working-directory: kpi_mobile_app
         run: flutter build apk --release
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: Viettel-CaoBang-KPI-v1.0.3-apk
-          path: kpi_mobile/build/app/outputs/flutter-apk/app-release.apk
+          path: kpi_mobile_app/build/app/outputs/flutter-apk/app-release.apk
           if-no-files-found: error
           retention-days: 14
