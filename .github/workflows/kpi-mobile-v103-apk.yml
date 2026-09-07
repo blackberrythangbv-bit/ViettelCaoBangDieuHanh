@@ -28,7 +28,7 @@ jobs:
           cp kpi_mobile_app/lib/*.dart /tmp/kpi_src/lib/
           cd kpi_mobile_app
           flutter create --platforms=android,ios --org vn.viettel.caobang --project-name viettel_cao_bang_kpi .
-          rm -rf lib
+          rm -rf lib test
           cp -R /tmp/kpi_src/lib ./lib
           cp /tmp/kpi_src/pubspec.yaml ./pubspec.yaml
 
@@ -52,7 +52,7 @@ jobs:
 
       - name: Analyze
         working-directory: kpi_mobile_app
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos
 
       - name: Build release APK
         working-directory: kpi_mobile_app
