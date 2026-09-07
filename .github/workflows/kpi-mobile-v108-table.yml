@@ -1,0 +1,67 @@
+name: Build KPI Mobile V1.0.8 AM Progress Table
+
+on:
+  push:
+    branches:
+      - kpi-mobile-v1.0.3-build
+    paths:
+      - '.github/workflows/kpi-mobile-v108-table.yml'
+      - 'tools/patch_am_progress_table_v108.py'
+      - 'tools/patch_fast.py'
+      - 'kpi_mobile_app/**'
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Create Android project
+        run: |
+          rm -rf /tmp/kpi_src
+          mkdir -p /tmp/kpi_src/lib
+          cp kpi_mobile_app/pubspec.yaml /tmp/kpi_src/pubspec.yaml
+          cp kpi_mobile_app/lib/*.dart /tmp/kpi_src/lib/
+          cd kpi_mobile_app
+          flutter create --platforms=android,ios --org vn.viettel.caobang --project-name viettel_cao_bang_kpi .
+          rm -rf lib test
+          cp -R /tmp/kpi_src/lib ./lib
+          cp /tmp/kpi_src/pubspec.yaml ./pubspec.yaml
+          sed -i 's/^version:.*/version: 1.0.8+9/' pubspec.yaml
+
+      - name: Patch Phuong an B fast loading
+        working-directory: kpi_mobile_app
+        run: python3 ../tools/patch_fast.py
+
+      - name: Patch AM progress summary table
+        working-directory: kpi_mobile_app
+        run: python3 ../tools/patch_am_progress_table_v108.py
+
+      - name: Dependencies
+        working-directory: kpi_mobile_app
+        run: flutter pub get
+
+      - name: Analyze
+        working-directory: kpi_mobile_app
+        run: flutter analyze --no-fatal-infos
+
+      - name: Build release APK
+        working-directory: kpi_mobile_app
+        run: flutter build apk --release
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Viettel-CaoBang-KPI-v1.0.8-AM-progress-table
+          path: kpi_mobile_app/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
