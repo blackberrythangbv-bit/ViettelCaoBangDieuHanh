@@ -1,7 +1,7 @@
 name: viettel_cao_bang_kpi
 description: KPI DNS Viettel Cao Bang mobile app
 publish_to: "none"
-version: 1.0.3+4
+version: 1.0.5+5
 environment:
   sdk: ">=3.4.0 <4.0.0"
 dependencies:
