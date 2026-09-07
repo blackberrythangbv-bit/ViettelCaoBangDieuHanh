@@ -14,14 +14,14 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Unzip KPI Mobile source
+      - name: Restore KPI Mobile source
         run: |
-          rm -rf kpi_mobile
+          rm -rf kpi_mobile kpi_mobile_min.zip
           mkdir kpi_mobile
-          unzip -o Viettel_CaoBang_KPI_Mobile_V1_0_3_RELEASE.zip -d kpi_mobile
-          mv kpi_mobile/Viettel_CaoBang_KPI_Mobile_V1_0_3_RELEASE/* kpi_mobile/
-          mv kpi_mobile/Viettel_CaoBang_KPI_Mobile_V1_0_3_RELEASE/.[!.]* kpi_mobile/ 2>/dev/null || true
-          rmdir kpi_mobile/Viettel_CaoBang_KPI_Mobile_V1_0_3_RELEASE || true
+          base64 -d kpi_mobile_min.b64 > kpi_mobile_min.zip
+          unzip -o kpi_mobile_min.zip -d kpi_mobile
+          test -f kpi_mobile/pubspec.yaml
+          test -f kpi_mobile/lib/main.dart
 
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
