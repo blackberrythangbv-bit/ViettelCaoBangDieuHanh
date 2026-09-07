@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#E80500">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="KPI DNS CB">
+  <meta name="format-detection" content="telephone=no">
+  <title>KPI DNS Cao Bằng</title>
+  <style>
+    :root{
+      --red:#E80500; --orange:#FF8F00; --purple:#8E24AA; --green:#00A651;
+      --ink:#42494D; --muted:#6F777B; --line:#E7EAEC; --bg:#F5F6F7; --card:#FFFFFF;
+      --safe-top:env(safe-area-inset-top); --safe-bottom:env(safe-area-inset-bottom);
+    }
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;background:var(--bg);color:var(--ink);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif}
+    body{min-height:100vh;padding-bottom:calc(78px + var(--safe-bottom));overscroll-behavior-y:none}
+    button,input{font:inherit}
+    .topbar{position:sticky;top:0;z-index:50;background:var(--red);color:#fff;padding:calc(10px + var(--safe-top)) 16px 12px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+    .toprow{display:flex;align-items:center;gap:12px;min-height:42px}
+    .brand{font-weight:800;letter-spacing:.2px;font-size:18px;line-height:1.15;flex:1}
+    .subtitle{font-size:12px;opacity:.88;margin-top:3px}
+    .iconbtn{border:0;background:rgba(255,255,255,.14);color:#fff;width:38px;height:38px;border-radius:12px;display:grid;place-items:center;font-size:20px}
+    .sync{font-size:11px;opacity:.86;margin-top:5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .wrap{max-width:860px;margin:0 auto;padding:14px}
+    .card{background:var(--card);border-radius:18px;padding:14px;box-shadow:0 1px 5px rgba(0,0,0,.06);margin-bottom:12px}
+    .section-title{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:16px;font-weight:800;margin:2px 0 12px}
+    .pill{font-size:11px;font-weight:700;border-radius:999px;padding:5px 8px;background:#F0F2F3;color:var(--ink)}
+    .pill.good{background:#E7F6EF;color:#00763C}.pill.warn{background:#FFF1DB;color:#A85E00}.pill.bad{background:#FDE8E7;color:#B81B16}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .stat{padding:12px;border:1px solid var(--line);border-radius:14px;background:#fff}
+    .stat .label{font-size:12px;color:var(--muted)}
+    .stat .value{font-size:21px;font-weight:850;margin-top:4px}
+    .donutgrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+    .donutcard{border:1px solid var(--line);border-radius:16px;padding:12px;text-align:center}
+    .donut{--p:0;--c:var(--red);width:94px;height:94px;margin:0 auto 8px;border-radius:50%;background:conic-gradient(var(--c) calc(var(--p)*1%),#E9ECEE 0);position:relative}
+    .donut:after{content:"";position:absolute;inset:11px;background:white;border-radius:50%}
+    .donut .txt{position:absolute;z-index:2;inset:0;display:grid;place-items:center;font-size:17px;font-weight:850;color:var(--ink)}
+    .donutname{font-size:12px;font-weight:700;line-height:1.25;min-height:30px}
+    .donutsub{font-size:11px;color:var(--muted);margin-top:4px}
+    .amlist{display:grid;gap:8px}
+    .amrow{border:1px solid var(--line);border-radius:14px;padding:11px 12px;display:flex;align-items:center;gap:10px;background:#fff}
+    .rank{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;background:#F1F3F4;font-weight:800;font-size:12px}
+    .aminfo{flex:1;min-width:0}.amcode{font-weight:800;font-size:14px}.ammeta{font-size:11px;color:var(--muted);margin-top:3px}
+    .score{font-weight:850;font-size:16px}.chev{color:#A1A7AA;font-size:20px}
+    .alert{border-left:4px solid var(--orange);background:#FFF8EE;border-radius:12px;padding:10px 11px;margin-top:8px;font-size:12px;line-height:1.4}
+    .empty{padding:26px 12px;text-align:center;color:var(--muted)}
+    .tabs{display:flex;gap:8px;margin-bottom:12px}.tab{flex:1;border:0;border-radius:12px;padding:11px;background:#ECEFF1;color:var(--ink);font-weight:750}.tab.active{background:var(--red);color:#fff}
+    .kpirow{border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:9px;background:#fff}
+    .kpitop{display:flex;gap:8px;align-items:flex-start}.kpiname{flex:1;font-size:13px;font-weight:760;line-height:1.35}.kpipct{font-weight:850;font-size:14px}
+    .bar{height:8px;border-radius:99px;background:#ECEFF1;overflow:hidden;margin:9px 0}.bar>i{display:block;height:100%;background:var(--green);border-radius:99px}
+    .kv{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;font-size:11px}.kv div{background:#F7F8F9;border-radius:9px;padding:7px}.kv b{display:block;font-size:12px;margin-top:2px;color:var(--ink)}
+    .field{margin-bottom:11px}.field label{display:block;font-size:12px;font-weight:700;margin-bottom:6px}.field input{width:100%;border:1px solid #D6DADD;border-radius:12px;padding:12px;background:#fff;outline:none}.field input:focus{border-color:var(--red);box-shadow:0 0 0 3px rgba(232,5,0,.08)}
+    .savebtn{width:100%;border:0;border-radius:13px;padding:13px;background:var(--red);color:#fff;font-weight:850;font-size:15px}.savebtn:disabled{opacity:.5}
+    .hint{font-size:11px;color:var(--muted);line-height:1.4;margin:8px 0 14px}
+    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + var(--safe-bottom));z-index:100;background:#313638;color:#fff;padding:11px 15px;border-radius:999px;font-size:12px;box-shadow:0 6px 20px rgba(0,0,0,.2);display:none;max-width:86%;text-align:center}
+    .loading{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:spin .8s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}
+    .install{background:#FFF4F3;border:1px solid #FFD1CE}.install b{color:var(--red)}
+    .back{font-size:22px}
+    .hidden{display:none!important}
+    @media(min-width:700px){.donutgrid{grid-template-columns:repeat(3,1fr)}.wrap{padding:18px}.grid2{grid-template-columns:repeat(4,1fr)}}
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="toprow">
+      <button id="backBtn" class="iconbtn hidden" onclick="goHome()" aria-label="Quay lại"><span class="back">‹</span></button>
+      <div>
+        <div id="title" class="brand">KPI DNS Cao Bằng</div>
+        <div id="subtitle" class="subtitle">Viettel Cao Bằng · PWA v1.0.1</div>
+      </div>
+      <div style="flex:1"></div>
+      <button id="refreshBtn" class="iconbtn" onclick="refreshData()" aria-label="Làm mới">↻</button>
+    </div>
+    <div id="syncText" class="sync">Đang khởi động…</div>
+  </header>
+
+  <main id="app" class="wrap"></main>
+  <div id="toast" class="toast"></div>
+
+<script>
+const METRICS=[
+  ['Doanh thu truyền thống','đồng',25],['Tổng thâm nhập vào DN MTL','DN',10],['Tổng gia hạn','TB',10],
+  ['Tendoo','TB',15],['TB Mysign','TB',5],['DT Dịch vụ mới','đồng',10],['M2M/IoT','TB',10],['FTTH','TB',10],['Doanh thu Giáo dục, y tế','đồng',5]
+];
+const AMS=['HOAIBT4','NUONGPM','THAODP7','LANHT22','HUEHT16','QUYENLTN'];
+const CACHE_KEY='kpi_pwa_bootstrap_v101';
+let STATE={all:{},targets:{},serverTime:null};
+let currentAm=null,currentTab='progress',saving=false;
+
+const $=id=>document.getElementById(id);
+const esc=s=>String(s??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]));
+const clamp=(n,a,b)=>Math.max(a,Math.min(b,n));
+const pct=(th,kh)=>kh===0?100:(th/kh*100);
+const fmt=(n,unit='')=>{
+  n=Number(n||0);
+  if(unit==='đồng') return new Intl.NumberFormat('vi-VN',{maximumFractionDigits:0}).format(n);
+  return new Intl.NumberFormat('vi-VN',{maximumFractionDigits:1}).format(n);
+};
+const today=()=>{const d=new Date();return new Date(d.getFullYear(),d.getMonth(),d.getDate())};
+const ymd=d=>`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const monthLast=d=>new Date(d.getFullYear(),d.getMonth()+1,0);
+
+function colorFor(ratio,elapsed){if(ratio>=elapsed) return '#00A651'; if(ratio>=elapsed*.8) return '#FF8F00'; return '#E80500'}
+function score(actual,kh){let s=0;for(let i=0;i<9;i++){const c=kh[i]===0?1:actual[i]/kh[i];s+=clamp(c,0,1)*METRICS[i][2]}return s}
+function parseNum(v){if(v===null||v===undefined||v==='') return null;const n=Number(v);return Number.isFinite(n)?n:null}
+
+function closedMonthActual(am,now=today()){
+  const out=Array(9).fill(0), closed=new Date(now);closed.setDate(closed.getDate()-1);
+  const daily=am?.daily||{};
+  Object.entries(daily).forEach(([k,row])=>{const d=new Date(k+'T00:00:00');if(Number.isNaN(d)||d.getFullYear()!==now.getFullYear()||d.getMonth()!==now.getMonth()||d>closed)return;for(let i=0;i<9;i++){const v=parseNum(row?.[i]);if(v!==null)out[i]+=v}});
+  return out;
+}
+function currentWeek(now=today()){
+  const first=new Date(now.getFullYear(),now.getMonth(),1);let start=new Date(first),idx=0;
+  while(idx<5){let end=new Date(start);end.setDate(end.getDate()+(7-end.getDay()||7));if(end.getMonth()!==now.getMonth())end=monthLast(now);if(now>=start&&now<=end)return{idx,start,end};start=new Date(end);start.setDate(start.getDate()+1);idx++}
+  return{idx:4,start:first,end:monthLast(now)};
+}
+function weekActual(am,now=today()){
+  const w=currentWeek(now),closed=new Date(now);closed.setDate(closed.getDate()-1);const out=Array(9).fill(0);
+  Object.entries(am?.daily||{}).forEach(([k,row])=>{const d=new Date(k+'T00:00:00');if(d<w.start||d>w.end||d>closed)return;for(let i=0;i<9;i++){const v=parseNum(row?.[i]);if(v!==null)out[i]+=v}});return out
+}
+function monthElapsed(now=today()){
+  const closed=Math.max(0,now.getDate()-1),days=monthLast(now).getDate();return days?closed/days:0
+}
+function weekElapsed(now=today()){
+  const w=currentWeek(now),closed=new Date(now);closed.setDate(closed.getDate()-1);if(closed<w.start)return 0;const total=Math.round((w.end-w.start)/86400000)+1;const done=Math.min(total,Math.round((closed-w.start)/86400000)+1);return total?done/total:0
+}
+function cumulativeWeekTarget(t,weeksIdx){const out=Array(9).fill(0);for(let w=0;w<=weeksIdx;w++){const row=t?.tuan?.[w]||[];for(let i=0;i<9;i++)out[i]+=Number(row[i]||0)}return out}
+
+function showToast(msg){const t=$('toast');t.textContent=msg;t.style.display='block';clearTimeout(showToast.x);showToast.x=setTimeout(()=>t.style.display='none',2600)}
+function setSync(msg,busy=false){$('syncText').innerHTML=(busy?'<span class="loading"></span> ':'')+esc(msg)}
+function saveCache(){try{localStorage.setItem(CACHE_KEY,JSON.stringify(STATE))}catch(e){}}
+function loadCache(){try{const x=JSON.parse(localStorage.getItem(CACHE_KEY)||'null');if(x&&x.all&&x.targets){STATE=x;return true}}catch(e){}return false}
+
+function bootstrapServer(){
+  return new Promise((resolve,reject)=>{
+    if(!(window.google&&google.script&&google.script.run))return reject(new Error('Không chạy trong Google Apps Script'));
+    google.script.run.withSuccessHandler(resolve).withFailureHandler(e=>reject(new Error(e?.message||e))).pwaBootstrapV101();
+  });
+}
+async function refreshData(){
+  setSync('Đang đồng bộ dữ liệu mới…',true);$('refreshBtn').disabled=true;
+  try{
+    const r=await bootstrapServer();if(!r||r.ok!==true)throw new Error('Dữ liệu trả về không hợp lệ');STATE=r.data;saveCache();setSync('Đã đồng bộ · '+new Date().toLocaleTimeString('vi-VN',{hour:'2-digit',minute:'2-digit'}));render();
+  }catch(e){setSync('Đang dùng dữ liệu đã lưu');showToast('Không đồng bộ được: '+e.message)}finally{$('refreshBtn').disabled=false}
+}
+
+function render(){currentAm?renderAm(currentAm):renderHome()}
+function renderHome(){
+  currentAm=null;$('backBtn').classList.add('hidden');$('title').textContent='KPI DNS Cao Bằng';$('subtitle').textContent='Viettel Cao Bằng · PWA v1.0.1';
+  const now=today(),me=monthElapsed(now),we=weekElapsed(now),w=currentWeek(now);
+  const aggKh=Array(9).fill(0),aggActual=Array(9).fill(0),rank=[];
+  AMS.forEach(code=>{const a=STATE.all?.[code],t=STATE.targets?.[code];if(!a||!t)return;const actual=closedMonthActual(a,now);for(let i=0;i<9;i++){aggKh[i]+=Number(t.khThang?.[i]??a.khThang?.[i]??0);aggActual[i]+=actual[i]}rank.push([code,score(actual,t.khThang||a.khThang||Array(9).fill(0))])});
+  rank.sort((a,b)=>b[1]-a[1]);const totalScore=aggKh.reduce((s,_,i)=>s+clamp(aggKh[i]===0?1:aggActual[i]/aggKh[i],0,1)*METRICS[i][2],0);
+  let html=`
+    <div class="card install"><b>Cài như app trên iPhone:</b> Safari → Chia sẻ → <b>Thêm vào Màn hình chính</b>. Sau đó mở từ icon KPI DNS.</div>
+    <div class="grid2">
+      <div class="stat"><div class="label">Điểm KPI kênh</div><div class="value">${totalScore.toFixed(1)}</div></div>
+      <div class="stat"><div class="label">Tiến độ tháng</div><div class="value">${Math.round(me*100)}%</div></div>
+      <div class="stat"><div class="label">Tuần hiện tại</div><div class="value">T${w.idx+1}</div></div>
+      <div class="stat"><div class="label">Đã qua tuần</div><div class="value">${Math.round(we*100)}%</div></div>
+    </div>
+    <div class="card"><div class="section-title"><span>Tiến độ 9 KPI</span><span class="pill">Chốt N-1</span></div><div class="donutgrid">`;
+  for(let i=0;i<9;i++){const p=pct(aggActual[i],aggKh[i]),c=colorFor(p/100,me);html+=donutHtml(p,c,METRICS[i][0],`${fmt(aggActual[i],METRICS[i][1])} / ${fmt(aggKh[i],METRICS[i][1])}`)}
+  html+=`</div></div><div class="card"><div class="section-title"><span>Xếp hạng AM</span><span class="pill">PL05</span></div><div class="amlist">`;
+  rank.forEach((r,idx)=>{const a=STATE.all[r[0]],t=STATE.targets[r[0]],wa=weekActual(a,now),wt=t?.tuan?.[w.idx]||Array(9).fill(0);let wp=0,ww=0;for(let i=0;i<9;i++){wp+=clamp(wt[i]===0?1:wa[i]/wt[i],0,1)*METRICS[i][2];ww+=METRICS[i][2]}html+=`<button class="amrow" onclick="openAm('${r[0]}')" style="width:100%;text-align:left"><span class="rank">${idx+1}</span><span class="aminfo"><span class="amcode">${r[0]}</span><span class="ammeta">Tuần: ${wp.toFixed(1)} điểm · Tháng: ${r[1].toFixed(1)} điểm</span></span><span class="score">${r[1].toFixed(1)}</span><span class="chev">›</span></button>`});
+  html+=`</div></div>`;
+  const alerts=[];for(let i=0;i<9;i++){const r=aggKh[i]===0?1:aggActual[i]/aggKh[i];if(r<me*.8)alerts.push(`${METRICS[i][0]} đang ở ${Math.round(r*100)}%, thấp hơn đáng kể so với tiến độ thời gian ${Math.round(me*100)}%.`)}
+  if(alerts.length){html+=`<div class="card"><div class="section-title">Cảnh báo tiến độ</div>${alerts.slice(0,5).map(x=>`<div class="alert">${esc(x)}</div>`).join('')}</div>`}
+  $('app').innerHTML=html;
+}
+function donutHtml(p,c,name,sub){const shown=Math.max(0,Math.min(999,p));return `<div class="donutcard"><div class="donut" style="--p:${clamp(p,0,100)};--c:${c}"><div class="txt">${Math.round(shown)}%</div></div><div class="donutname">${esc(name)}</div><div class="donutsub">${esc(sub)}</div></div>`}
+
+function openAm(code){currentAm=code;currentTab='progress';renderAm(code);window.scrollTo({top:0,behavior:'smooth'})}
+function goHome(){currentAm=null;renderHome();window.scrollTo({top:0,behavior:'smooth'})}
+function setTab(t){currentTab=t;renderAm(currentAm)}
+function renderAm(code){
+  const a=STATE.all?.[code],t=STATE.targets?.[code];$('backBtn').classList.remove('hidden');$('title').textContent=code;$('subtitle').textContent='Chi tiết AM · chốt N-1';
+  if(!a||!t){$('app').innerHTML='<div class="card empty">Chưa có dữ liệu AM.</div>';return}
+  const now=today(),actual=closedMonthActual(a,now),wa=weekActual(a,now),w=currentWeek(now),wt=t.tuan?.[w.idx]||Array(9).fill(0),me=monthElapsed(now),we=weekElapsed(now),kh=t.khThang||a.khThang||Array(9).fill(0);
+  let html=`<div class="tabs"><button class="tab ${currentTab==='progress'?'active':''}" onclick="setTab('progress')">Tiến độ</button><button class="tab ${currentTab==='input'?'active':''}" onclick="setTab('input')">Nhập KQ</button></div>`;
+  if(currentTab==='progress'){
+    html+=`<div class="grid2"><div class="stat"><div class="label">Điểm tháng</div><div class="value">${score(actual,kh).toFixed(1)}</div></div><div class="stat"><div class="label">Tuần ${w.idx+1}</div><div class="value">${score(wa,wt).toFixed(1)}</div></div></div>`;
+    html+=`<div class="card"><div class="section-title"><span>Chi tiết KPI tháng</span><span class="pill">N-1</span></div>`;
+    for(let i=0;i<9;i++){const p=pct(actual[i],kh[i]),rem=Math.max(0,kh[i]-actual[i]),c=colorFor(p/100,me);html+=kpiRow(METRICS[i][0],p,c,actual[i],kh[i],rem,METRICS[i][1])}
+    html+=`</div><div class="card"><div class="section-title"><span>Tiến độ tuần ${w.idx+1}</span><span class="pill">${Math.round(we*100)}% thời gian</span></div>`;
+    for(let i=0;i<9;i++){const p=pct(wa[i],wt[i]),rem=Math.max(0,wt[i]-wa[i]),c=colorFor(p/100,we);html+=kpiRow(METRICS[i][0],p,c,wa[i],wt[i],rem,METRICS[i][1])}
+    html+=`</div>`;
+  } else {
+    const ds=ymd(now),existing=a.daily?.[ds]||Array(9).fill(null);
+    html+=`<div class="card"><div class="section-title">Nhập kết quả ngày</div><div class="field"><label>Ngày</label><input id="entryDate" type="date" value="${ds}" min="${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-01" max="${ymd(monthLast(now))}" onchange="loadEntryDate()"></div><div class="hint">Ô để trống = không ghi đè dữ liệu hiện có. Nhập số <b>0</b> = ghi nhận kết quả bằng 0.</div><div id="entryFields">${entryFields(existing)}</div><button id="saveBtn" class="savebtn" onclick="saveEntry()">Lưu kết quả</button></div>`;
+  }
+  $('app').innerHTML=html;
+}
+function kpiRow(name,p,c,th,kh,rem,unit){return `<div class="kpirow"><div class="kpitop"><div class="kpiname">${esc(name)}</div><div class="kpipct" style="color:${c}">${Math.round(Math.max(0,p))}%</div></div><div class="bar"><i style="width:${clamp(p,0,100)}%;background:${c}"></i></div><div class="kv"><div>TH<b>${fmt(th,unit)}</b></div><div>KH<b>${fmt(kh,unit)}</b></div><div>Còn<b>${fmt(rem,unit)}</b></div></div></div>`}
+function entryFields(row){return METRICS.map((m,i)=>`<div class="field"><label>${i+1}. ${esc(m[0])} (${esc(m[1])})</label><input id="k${i}" inputmode="decimal" type="number" min="0" step="any" value="${row?.[i]===null||row?.[i]===undefined?'':esc(row[i])}" placeholder="Để trống nếu chưa nhập"></div>`).join('')}
+function loadEntryDate(){const ds=$('entryDate').value,a=STATE.all?.[currentAm],row=a?.daily?.[ds]||Array(9).fill(null);$('entryFields').innerHTML=entryFields(row)}
+async function saveEntry(){
+  if(saving)return;const ds=$('entryDate').value,vals=[];for(let i=0;i<9;i++){const s=$('k'+i).value.trim();vals.push(s===''?null:Number(s));if(s!==''&&(!Number.isFinite(vals[i])||vals[i]<0)){showToast(`KPI ${i+1} không hợp lệ`);return}}
+  saving=true;$('saveBtn').disabled=true;$('saveBtn').textContent='Đang lưu…';
+  try{
+    const r=await new Promise((resolve,reject)=>google.script.run.withSuccessHandler(resolve).withFailureHandler(e=>reject(new Error(e?.message||e))).pwaSaveEntryV101(currentAm,ds,vals));
+    if(!r||r.ok!==true)throw new Error('Không lưu được');STATE.all[currentAm]=r.data.amData;saveCache();showToast('Đã lưu và đọc lại dữ liệu');currentTab='progress';renderAm(currentAm);
+  }catch(e){showToast('Lỗi lưu: '+e.message)}finally{saving=false;const b=$('saveBtn');if(b){b.disabled=false;b.textContent='Lưu kết quả'}}
+}
+
+(function init(){
+  const cached=loadCache();if(cached){setSync('Hiển thị dữ liệu đã lưu · đang đồng bộ nền…',true);renderHome();refreshData()}else{setSync('Đang tải dữ liệu lần đầu…',true);$('app').innerHTML='<div class="card empty">Đang tải dữ liệu KPI…</div>';refreshData()}
+})();
+</script>
+</body>
+</html>
