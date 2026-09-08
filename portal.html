@@ -59,6 +59,16 @@ function loadEnterprise(force=false){
     f.src=freshUrl(f.dataset.baseSrc);
   }
 }
+function enhanceSchoolSummary(f){
+  try{
+    const d=f.contentDocument;
+    if(!d||d.documentElement.dataset.salesSummaryV1==='1')return;
+    d.documentElement.dataset.salesSummaryV1='1';
+    const s=d.createElement('script');
+    s.textContent=`(()=>{if(window.__schoolSalesSummaryV1)return;window.__schoolSalesSummaryV1=1;const neg=/tu choi|can thoi gian can nhac|khong ban|khong mua|khong co nhu cau|chua co nhu cau|khong dong y/;function salesQuick(){try{const rows=(typeof D!=='undefined'&&Array.isArray(D))?D:[],t=rows.length,done=rows.filter(r=>st(r)==='done'),p1=rows.filter(r=>n(r.uutien).includes('1')),p1d=p1.filter(r=>st(r)==='done').length,war=rows.filter(r=>/từ chối|đối thủ/i.test(n(r.ketqua))).length,success=done.filter(r=>{const k=l(r.ketqua);return !!k&&!neg.test(k)}).length,fail=done.length-success,rate=done.length?Math.round(success*100/done.length):0,q=g('quick');if(q)q.innerHTML='Hoàn thành: <b>'+done.length+'/'+t+'</b><br><br>Còn lại: <b>'+(t-done.length)+'</b><br><br>Ưu tiên 1: <b>'+p1d+'/'+p1.length+'</b><br><br>Cảnh báo: <b>'+war+'</b><br><br>Tiếp xúc thành công: <b>'+success+'</b><br><br>Tiếp xúc không thành công: <b>'+fail+'</b><br><br>Tỷ lệ thành công/Tổng đã tiếp xúc: <b>'+rate+'%</b>';}catch(e){console.warn('school sales summary',e)}}const base=render;render=function(){base();salesQuick()};salesQuick();})();`;
+    d.body.appendChild(s);
+  }catch(e){console.warn('Không bổ sung được Tổng hợp nhanh Trường học',e)}
+}
 function activate(id){
   tabs.forEach(t=>t.classList.toggle('active',t.dataset.panel===id));
   panels.forEach(p=>p.classList.toggle('active',p.id===id));
@@ -67,7 +77,7 @@ function activate(id){
   if(id==='enterprise')loadEnterprise(false);
 }
 tabs.forEach(t=>t.addEventListener('click',()=>activate(t.dataset.panel)));
-document.querySelectorAll('iframe').forEach(f=>f.addEventListener('load',()=>f.closest('.panel').querySelector('.loading')?.classList.add('hide')));
+document.querySelectorAll('iframe').forEach(f=>f.addEventListener('load',()=>{f.closest('.panel').querySelector('.loading')?.classList.add('hide');if(f.closest('.panel').id==='school')enhanceSchoolSummary(f)}));
 document.getElementById('reload').onclick=()=>{
   const p=document.querySelector('.panel.active');
   p.querySelector('.loading')?.classList.remove('hide');
