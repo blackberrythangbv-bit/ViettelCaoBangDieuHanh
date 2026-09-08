@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#e80500">
+<title>Viettel Cao Bằng - Điều hành tiếp xúc bán hàng</title>
+<style>
+:root{--red:#e80500;--red2:#c90400;--dark:#40474b;--bg:#f3f5f6;--line:#e4e7e9;--txt:#30363a;--muted:#747b80;--white:#fff}
+*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:Calibri,Arial,sans-serif;color:var(--txt);background:var(--bg)}
+body{overflow:hidden}
+.top{height:64px;background:linear-gradient(90deg,var(--red),var(--red2));color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 18px;box-shadow:0 2px 8px #0002;position:relative;z-index:20}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}.logo{font-weight:900;border:1px solid #fff;border-radius:7px;padding:5px 10px;white-space:nowrap}.title{min-width:0}.title b{display:block;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.title span{display:block;font-size:11px;opacity:.9;margin-top:2px}
+.actions{display:flex;gap:8px}.iconbtn{border:1px solid #ffffff66;color:#fff;background:#ffffff12;border-radius:8px;padding:8px 11px;font-weight:800;cursor:pointer}
+.tabs{height:54px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:7px 14px;position:relative;z-index:15;box-shadow:0 1px 4px #0000000d}
+.tab{border:1px solid var(--line);background:#f7f8f8;color:var(--dark);border-radius:9px;padding:10px 14px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap}.tab.active{background:var(--red);border-color:var(--red);color:#fff}.tab small{font-weight:600;opacity:.8}
+.status{margin-left:auto;font-size:11px;color:var(--muted);white-space:nowrap}
+.stage{height:calc(100vh - 118px);position:relative;background:var(--bg)}
+.panel{position:absolute;inset:0;display:none}.panel.active{display:block}.frame{width:100%;height:100%;border:0;background:#fff;display:block}
+.loading{position:absolute;inset:0;display:grid;place-items:center;background:#f3f5f6;z-index:2;pointer-events:none;transition:.2s}.loading.hide{opacity:0;visibility:hidden}.loadbox{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 24px;box-shadow:0 3px 12px #0001;font-weight:800;color:var(--dark)}
+.fallback{position:absolute;right:12px;bottom:12px;z-index:5;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;box-shadow:0 2px 10px #0002;font-size:11px;color:var(--muted)}.fallback a{color:var(--red);font-weight:800;text-decoration:none}
+@media(max-width:720px){.top{height:58px;padding:0 10px}.logo{font-size:12px;padding:4px 7px}.title b{font-size:14px}.title span{display:none}.actions{display:none}.tabs{height:54px;padding:7px 8px;overflow-x:auto}.tab{padding:9px 11px;font-size:12px}.tab small{display:none}.status{display:none}.stage{height:calc(100vh - 112px)}.fallback{right:7px;bottom:7px}}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="brand">
+    <div class="logo">VIETTEL CAO BẰNG</div>
+    <div class="title"><b>ĐIỀU HÀNH TIẾP XÚC BÁN HÀNG</b><span>Một cửa vào · Hai module nghiệp vụ · Dữ liệu thời gian thực</span></div>
+  </div>
+  <div class="actions"><button class="iconbtn" id="reload">↻ TẢI LẠI</button></div>
+</header>
+<nav class="tabs" aria-label="Điều hướng module">
+  <button class="tab active" data-panel="school">🏫 TIẾP XÚC TRƯỜNG HỌC <small>Dashboard trường học</small></button>
+  <button class="tab" data-panel="enterprise">🏢 DN ƯU TIÊN <small>Tiếp xúc doanh nghiệp</small></button>
+  <div class="status" id="status">Đang mở: Tiếp xúc trường học</div>
+</nav>
+<main class="stage">
+  <section class="panel active" id="school">
+    <div class="loading"><div class="loadbox">Đang nạp module Trường học...</div></div>
+    <iframe class="frame" title="Tiếp xúc Trường học" src="./" loading="eager"></iframe>
+  </section>
+  <section class="panel" id="enterprise">
+    <div class="loading"><div class="loadbox">Đang nạp module DN ưu tiên...</div></div>
+    <iframe class="frame" title="Tiếp xúc DN ưu tiên" src="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    <div class="fallback">Nếu module Google không hiển thị do chính sách nhúng: <a href="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" target="_blank" rel="noopener">mở trực tiếp</a></div>
+  </section>
+</main>
+<script>
+const names={school:'Tiếp xúc trường học',enterprise:'Tiếp xúc DN ưu tiên'};
+const tabs=[...document.querySelectorAll('.tab')],panels=[...document.querySelectorAll('.panel')];
+function activate(id){
+  tabs.forEach(t=>t.classList.toggle('active',t.dataset.panel===id));
+  panels.forEach(p=>p.classList.toggle('active',p.id===id));
+  document.getElementById('status').textContent='Đang mở: '+names[id];
+  try{localStorage.setItem('vtcb-portal-tab',id)}catch(_){ }
+  if(id==='enterprise'){
+    const f=document.querySelector('#enterprise iframe');
+    if(f.dataset.started!=='1'){f.dataset.started='1';const s=f.src;f.src=s;}
+  }
+}
+tabs.forEach(t=>t.addEventListener('click',()=>activate(t.dataset.panel)));
+document.querySelectorAll('iframe').forEach(f=>f.addEventListener('load',()=>f.closest('.panel').querySelector('.loading')?.classList.add('hide')));
+document.getElementById('reload').onclick=()=>{const p=document.querySelector('.panel.active'),f=p.querySelector('iframe');p.querySelector('.loading')?.classList.remove('hide');f.src=f.src};
+try{const saved=localStorage.getItem('vtcb-portal-tab');if(saved&&names[saved])activate(saved)}catch(_){ }
+</script>
+</body>
+</html>
