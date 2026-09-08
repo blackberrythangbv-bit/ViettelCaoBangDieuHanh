@@ -1,0 +1,65 @@
+name: Build KPI Mobile V1.0.9 Report Export APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - kpi-mobile-v1.0.9-report-export
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+
+      - name: Create Android project
+        run: |
+          rm -rf /tmp/kpi_src
+          mkdir -p /tmp/kpi_src/lib
+          cp kpi_mobile_app/pubspec.yaml /tmp/kpi_src/pubspec.yaml
+          cp kpi_mobile_app/lib/*.dart /tmp/kpi_src/lib/
+          cd kpi_mobile_app
+          flutter create --platforms=android,ios --org vn.viettel.caobang --project-name viettel_cao_bang_kpi .
+          rm -rf lib test
+          cp -R /tmp/kpi_src/lib ./lib
+          cp /tmp/kpi_src/pubspec.yaml ./pubspec.yaml
+
+      - name: Patch v1.0.7 Phuong An B fast loading
+        working-directory: kpi_mobile_app
+        run: python3 ../tools/patch_fast.py
+
+      - name: Patch report export
+        working-directory: kpi_mobile_app
+        run: python3 ../tools/patch_report_export_v109.py
+
+      - name: Dependencies
+        working-directory: kpi_mobile_app
+        run: flutter pub get
+
+      - name: Format generated source
+        working-directory: kpi_mobile_app
+        run: dart format lib/main.dart lib/report_export.dart
+
+      - name: Analyze
+        working-directory: kpi_mobile_app
+        run: flutter analyze --no-fatal-infos
+
+      - name: Build release APK
+        working-directory: kpi_mobile_app
+        run: flutter build apk --release
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Viettel-CaoBang-KPI-v1.0.9-report-export-apk
+          path: kpi_mobile_app/build/app/outputs/flutter-apk/app-release.apk
+          if-no-files-found: error
+          retention-days: 14
