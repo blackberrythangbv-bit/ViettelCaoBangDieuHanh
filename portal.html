@@ -32,7 +32,7 @@ body{overflow:hidden}
 </header>
 <nav class="tabs" aria-label="Điều hướng module">
   <button class="tab active" data-panel="school">🏫 TIẾP XÚC TRƯỜNG HỌC <small>Dashboard trường học</small></button>
-  <button class="tab" data-panel="enterprise">🏢 DN ƯU TIÊN <small>Tiếp xúc doanh nghiệp</small></button>
+  <button class="tab" data-panel="enterprise">🏢 TIẾP XÚC DN <small>Tiếp xúc doanh nghiệp</small></button>
   <div class="status" id="status">Đang mở: Tiếp xúc trường học</div>
 </nav>
 <main class="stage">
@@ -41,13 +41,13 @@ body{overflow:hidden}
     <iframe class="frame" title="Tiếp xúc Trường học" src="./" loading="eager"></iframe>
   </section>
   <section class="panel" id="enterprise">
-    <div class="loading"><div class="loadbox">Đang nạp module DN ưu tiên...</div></div>
-    <iframe class="frame" title="Tiếp xúc DN ưu tiên" src="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    <div class="loading"><div class="loadbox">Đang nạp module Tiếp xúc DN...</div></div>
+    <iframe class="frame" title="Tiếp xúc DN" src="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
     <div class="fallback">Nếu module Google không hiển thị do chính sách nhúng: <a href="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" target="_blank" rel="noopener">mở trực tiếp</a></div>
   </section>
 </main>
 <script>
-const names={school:'Tiếp xúc trường học',enterprise:'Tiếp xúc DN ưu tiên'};
+const names={school:'Tiếp xúc trường học',enterprise:'Tiếp xúc DN'};
 const tabs=[...document.querySelectorAll('.tab')],panels=[...document.querySelectorAll('.panel')];
 function activate(id){
   tabs.forEach(t=>t.classList.toggle('active',t.dataset.panel===id));
