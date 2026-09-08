@@ -41,27 +41,39 @@ body{overflow:hidden}
     <iframe class="frame" title="Tiếp xúc Trường học" src="./" loading="eager"></iframe>
   </section>
   <section class="panel" id="enterprise">
-    <div class="loading"><div class="loadbox">Đang nạp module Tiếp xúc DN...</div></div>
-    <iframe class="frame" title="Tiếp xúc DN" src="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    <div class="loading"><div class="loadbox">Đang nạp module Tiếp xúc DN mới nhất...</div></div>
+    <iframe class="frame" title="Tiếp xúc DN" data-base-src="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
     <div class="fallback">Nếu module Google không hiển thị do chính sách nhúng: <a href="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" target="_blank" rel="noopener">mở trực tiếp</a></div>
   </section>
 </main>
 <script>
 const names={school:'Tiếp xúc trường học',enterprise:'Tiếp xúc DN'};
 const tabs=[...document.querySelectorAll('.tab')],panels=[...document.querySelectorAll('.panel')];
+function freshUrl(base){return base+(base.includes('?')?'&':'?')+'_portalts='+Date.now()}
+function loadEnterprise(force=false){
+  const f=document.querySelector('#enterprise iframe');
+  if(!f)return;
+  if(force||!f.dataset.started){
+    f.dataset.started='1';
+    f.closest('.panel').querySelector('.loading')?.classList.remove('hide');
+    f.src=freshUrl(f.dataset.baseSrc);
+  }
+}
 function activate(id){
   tabs.forEach(t=>t.classList.toggle('active',t.dataset.panel===id));
   panels.forEach(p=>p.classList.toggle('active',p.id===id));
   document.getElementById('status').textContent='Đang mở: '+names[id];
   try{localStorage.setItem('vtcb-portal-tab',id)}catch(_){ }
-  if(id==='enterprise'){
-    const f=document.querySelector('#enterprise iframe');
-    if(f.dataset.started!=='1'){f.dataset.started='1';const s=f.src;f.src=s;}
-  }
+  if(id==='enterprise')loadEnterprise(false);
 }
 tabs.forEach(t=>t.addEventListener('click',()=>activate(t.dataset.panel)));
 document.querySelectorAll('iframe').forEach(f=>f.addEventListener('load',()=>f.closest('.panel').querySelector('.loading')?.classList.add('hide')));
-document.getElementById('reload').onclick=()=>{const p=document.querySelector('.panel.active'),f=p.querySelector('iframe');p.querySelector('.loading')?.classList.remove('hide');f.src=f.src};
+document.getElementById('reload').onclick=()=>{
+  const p=document.querySelector('.panel.active');
+  p.querySelector('.loading')?.classList.remove('hide');
+  if(p.id==='enterprise'){loadEnterprise(true);return}
+  const f=p.querySelector('iframe');if(f)f.src=f.src;
+};
 try{const saved=localStorage.getItem('vtcb-portal-tab');if(saved&&names[saved])activate(saved)}catch(_){ }
 </script>
 </body>
