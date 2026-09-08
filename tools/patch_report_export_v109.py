@@ -7,6 +7,9 @@ if "import 'dart:convert';" not in s:
     s = s.replace("import 'dart:io';", "import 'dart:convert';\nimport 'dart:io';", 1)
 s = s.replace("final bytes = Uint8List.fromList(text.codeUnits);", "final bytes = Uint8List.fromList(utf8.encode(text));")
 s = s.replace('formatCode="#\\,##0"', 'formatCode="#,##0"')
+s = s.replace("  static const _lightGray = Color(0xFFF2F3F4);\n", "")
+s = s.replace("textDirection: TextDirection.ltr,", "textDirection: ui.TextDirection.ltr,")
+s = s.replace("v != null && v! > 0", "v != null && v > 0")
 old_cell = '''  static void _cell(Canvas canvas, Rect rect, Color fill, Color border) {
     canvas.drawRect(rect, Paint()..color = fill);
     canvas.drawRect(rect, Paint()..color = border..style = PaintingStyle.stroke..strokeWidth = 1);
