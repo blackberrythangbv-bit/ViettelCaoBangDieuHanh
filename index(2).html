@@ -1,0 +1,1126 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Tiếp xúc Trường học sau Sáp nhập - Viettel Cao Bằng</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+<style>
+  :root{
+    --red:#E80500;
+    --dark:#42494D;
+    --white:#FFFFFF;
+    --bg:#F4F5F6;
+    --green:#1BA94C;
+    --orange:#FF8A00;
+    --blue:#0077C8;
+    --amber:#F2B705;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0; font-family:'Calibri','Segoe UI',Arial,sans-serif;
+    background:var(--bg); color:var(--dark);
+  }
+  .topbar{
+    background:linear-gradient(90deg,var(--red) 0%,#c40400 100%);
+    color:#fff; padding:18px 28px; display:flex; align-items:center; justify-content:space-between;
+    box-shadow:0 2px 8px rgba(0,0,0,.15);
+  }
+  .topbar h1{margin:0; font-size:20px; font-weight:700; letter-spacing:.3px;}
+  .topbar .sub{font-size:12.5px; opacity:.92; margin-top:3px;}
+  .topbar .brand{font-weight:800; font-size:15px; letter-spacing:1px; border:1.5px solid #fff; padding:4px 10px; border-radius:6px;}
+  .wrap{max-width:1400px; margin:0 auto; padding:20px 22px 60px;}
+
+  .kpi-row{display:grid; grid-template-columns:repeat(6,1fr); gap:14px; margin-bottom:20px;}
+  .kpi{
+    background:#fff; border-radius:12px; padding:14px 16px; box-shadow:0 2px 6px rgba(0,0,0,.06);
+    border-top:4px solid var(--red);
+  }
+  .kpi.blue{border-top-color:var(--blue);}
+  .kpi.green{border-top-color:var(--green);}
+  .kpi.orange{border-top-color:var(--orange);}
+  .kpi.dark{border-top-color:var(--dark);}
+  .kpi .num{font-size:26px; font-weight:800; color:var(--dark); line-height:1.1;}
+  .kpi .lbl{font-size:12px; color:#6b7278; margin-top:4px; font-weight:600;}
+  .kpi .sub2{font-size:11px; color:#9aa0a4; margin-top:2px;}
+
+  .grid2{display:grid; grid-template-columns:1.3fr 1fr; gap:16px; margin-bottom:20px;}
+  .card{background:#fff; border-radius:12px; padding:16px 18px; box-shadow:0 2px 6px rgba(0,0,0,.06);}
+  .card h3{margin:0 0 12px; font-size:15px; color:var(--dark); font-weight:800; display:flex; align-items:center; gap:8px;}
+  .card h3 .dot{width:8px; height:8px; border-radius:50%; background:var(--red); display:inline-block;}
+
+  .alert-box{
+    background:#FFF4F3; border:1.5px solid #FFCFCB; border-radius:12px; padding:16px 18px; margin-bottom:20px;
+  }
+  .alert-box h3{margin:0 0 10px; color:var(--red); font-size:15px; font-weight:800;}
+  .alert-item{
+    display:flex; gap:10px; align-items:flex-start; padding:8px 0; border-bottom:1px dashed #f3c9c6; font-size:13px;
+  }
+  .alert-item:last-child{border-bottom:none;}
+  .alert-item .badge{
+    flex-shrink:0; background:var(--red); color:#fff; font-size:11px; font-weight:700; padding:2px 8px; border-radius:10px;
+  }
+  .alert-item.warn .badge{background:var(--orange);}
+  .alert-item.info .badge{background:var(--blue);}
+
+  .filters{
+    background:#fff; border-radius:12px; padding:14px 18px; margin-bottom:16px; box-shadow:0 2px 6px rgba(0,0,0,.06);
+    display:flex; flex-wrap:wrap; gap:12px; align-items:flex-end;
+  }
+  .filters .fgroup{display:flex; flex-direction:column; gap:4px;}
+  .filters label{font-size:11px; font-weight:700; color:#6b7278; text-transform:uppercase; letter-spacing:.3px;}
+  .filters select, .filters input{
+    padding:7px 10px; border:1.5px solid #e1e4e6; border-radius:8px; font-size:13px; min-width:150px; color:var(--dark);
+    background:#fff;
+  }
+  .filters input[type=text]{min-width:220px;}
+  #fSearch[readonly]{background:#FAFBFB; cursor:pointer; min-width:340px; font-weight:700; padding-right:34px;}
+  .school-selector{position:relative;}
+  .school-selector::after{content:'⌄'; position:absolute; right:11px; bottom:8px; font-size:18px; line-height:1; color:#6b7278; pointer-events:none;}
+  .school-dropdown{display:none; position:absolute; z-index:1000; left:0; top:calc(100% + 5px); width:min(520px,90vw); background:#fff; border:1.5px solid #dfe3e6; border-radius:10px; box-shadow:0 10px 28px rgba(0,0,0,.16); padding:10px;}
+  .school-dropdown.open{display:block;}
+  .school-dropdown input{width:100%; min-width:0!important; margin-bottom:8px; padding:9px 10px; border:1.5px solid #dfe3e6; border-radius:8px;}
+  .school-options{max-height:320px; overflow:auto; border-top:1px solid #eef0f1;}
+  .school-option{display:block; width:100%; border:0; border-bottom:1px solid #eef0f1; background:#fff; padding:9px 10px; text-align:left; cursor:pointer;}
+  .school-option:hover,.school-option:focus{background:#FFF6F5; outline:none;}
+  .school-option .school-name{font-weight:800; color:var(--dark);}
+  .school-option .school-meta{font-size:11px; color:#7c8388; margin-top:2px;}
+  .school-empty{padding:14px 10px; color:#8b9096; font-size:12px;}
+  #fPrio:disabled{background:#F1F2F3; color:var(--dark); opacity:1; cursor:not-allowed;}
+  .school-pick{background:none; border:none; padding:0; margin:0; color:var(--blue); font:inherit; font-weight:800; text-align:left; cursor:pointer; text-decoration:underline; text-decoration-thickness:1px; text-underline-offset:2px;}
+  .school-pick:hover{color:var(--red);}
+  .filters .reset-btn{
+    background:var(--dark); color:#fff; border:none; border-radius:8px; padding:8px 16px; font-size:13px; font-weight:700; cursor:pointer;
+  }
+  .filters .reset-btn:hover{background:#2f3438;}
+  .count-pill{
+    margin-left:auto; background:var(--red); color:#fff; font-weight:800; font-size:13px; padding:8px 14px; border-radius:20px;
+  }
+
+  table{width:100%; border-collapse:collapse; font-size:12.5px;}
+  thead th{
+    background:var(--dark); color:#fff; text-align:left; padding:9px 10px; font-weight:700; font-size:11.5px;
+    text-transform:uppercase; letter-spacing:.2px; position:sticky; top:0;
+  }
+  tbody td{padding:8px 10px; border-bottom:1px solid #eef0f1; vertical-align:top;}
+  tbody tr:hover{background:#FFF8F7;}
+  .table-scroll{max-height:620px; overflow:auto; border-radius:10px; border:1px solid #eef0f1;}
+
+  .prio{display:inline-block; padding:3px 9px; border-radius:6px; font-size:11px; font-weight:800; color:#fff; white-space:nowrap;}
+  .prio1{background:var(--red);}
+  .prio2{background:var(--orange);}
+  .prio3{background:var(--green);}
+
+  .status{display:inline-block; padding:3px 9px; border-radius:6px; font-size:11px; font-weight:700; white-space:nowrap;}
+  .st-done{background:#E6F7ED; color:var(--green);}
+  .st-pending{background:#FFF3E0; color:var(--orange);}
+  .st-none{background:#F1F2F3; color:#8b9096;}
+  .st-danger{background:#FDEAEA; color:var(--red);}
+
+  .footer-note{font-size:11.5px; color:#9aa0a4; text-align:center; margin-top:24px;}
+
+  .am-grid{display:grid; grid-template-columns:repeat(auto-fill,minmax(300px,1fr)); gap:14px;}
+  .am-card{border:1.5px solid #eef0f1; border-radius:10px; padding:14px 16px; background:#FAFBFB;}
+  .am-card.noam{border-color:#F3C9C6; background:#FFF8F7;}
+  .am-card .am-head{display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;}
+  .am-card .am-name{font-weight:800; font-size:14px; color:var(--dark);}
+  .am-card .am-total{font-size:11px; color:#6b7278; font-weight:700;}
+  .progress-bar{height:8px; background:#e9ebec; border-radius:5px; overflow:hidden; display:flex; margin-bottom:10px;}
+  .progress-bar span{display:block; height:100%;}
+  .am-metrics{display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap;}
+  .am-metric{font-size:11px; font-weight:700; padding:3px 8px; border-radius:6px;}
+  .am-metric.done{background:#E6F7ED; color:var(--green);}
+  .am-metric.pending{background:#FFF3E0; color:var(--orange);}
+  .am-metric.p1{background:#FDEAEA; color:var(--red);}
+  .am-results{font-size:12px; color:var(--dark); border-top:1px dashed #e1e4e6; padding-top:8px;}
+  .am-results .kq-row{display:flex; justify-content:space-between; padding:2px 0;}
+  .am-results .kq-row span:last-child{font-weight:800;}
+  .am-results .kq-danger{color:var(--red);}
+  .am-results .kq-ok{color:var(--green);}
+  .am-results .kq-warn{color:var(--orange);}
+
+  @media (max-width:1100px){
+    .kpi-row{grid-template-columns:repeat(3,1fr);}
+    .grid2{grid-template-columns:1fr;}
+  }
+
+  .save-btn{
+    background:var(--red); color:#fff; border:none; border-radius:8px;
+    padding:9px 22px; font-size:13px; font-weight:800; cursor:pointer;
+    box-shadow:0 2px 5px rgba(232,5,0,.18);
+  }
+  .save-btn:hover{filter:brightness(.95);}
+  .save-msg{font-size:12px; font-weight:700; min-height:18px; align-self:center; max-width:560px;}
+  .save-msg.ok{color:var(--green);}
+  .save-msg.err{color:var(--red);}
+  .field-invalid{border-color:var(--red)!important; background:#FFF4F3!important;}
+
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <h1>DASHBOARD TỔNG HỢP TIẾP XÚC BÁN HÀNG – TRƯỜNG HỌC SAU SÁP NHẬP</h1>
+    <div class="sub">150 nhóm sáp nhập / 221 đầu mối giảm · 56 xã, phường · Nguồn: Phương án sắp xếp cơ sở giáo dục tỉnh Cao Bằng</div>
+  </div>
+  <div class="brand">VIETTEL CAO BẰNG</div>
+</div>
+
+<div class="wrap">
+
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <div class="card">
+    <h3><span class="dot"></span>Tỷ lệ tiến độ tiếp xúc toàn tỉnh</h3>
+    <div style="display:flex; gap:28px; align-items:center; justify-content:center; flex-wrap:wrap;">
+      <div style="flex:0 0 170px; max-width:170px;">
+        <canvas id="chartPie" width="170" height="170"></canvas>
+      </div>
+      <div style="flex:0 1 380px; min-width:280px;">
+        <table style="width:100%; border-collapse:collapse; font-size:13px;" id="pieSummaryTable"></table>
+      </div>
+    </div>
+  </div>
+
+  <div class="card" id="amListCard">
+    <h3><span class="dot"></span>Danh sách kết quả tiếp xúc theo từng AM phụ trách</h3>
+    <div class="am-grid" id="amGrid"></div>
+  </div>
+
+  <div class="alert-box" id="alertBox">
+    <h3>⚠ CÁC VẤN ĐỀ NỔI BẬT</h3>
+    <div id="alertList"></div>
+  </div>
+
+  <div class="filters">
+    <div class="fgroup school-selector">
+      <label>Tên xã / phường - trường</label>
+      <input type="text" id="fSearch" placeholder="Bấm để tìm và chọn trường" readonly aria-readonly="true" title="Bấm để mở danh sách tìm trường">
+      <div id="schoolDropdown" class="school-dropdown">
+        <input type="text" id="schoolLookup" placeholder="Tìm theo tên xã/phường hoặc tên trường..." autocomplete="off">
+        <div id="schoolOptions" class="school-options"></div>
+      </div>
+    </div>
+    <div class="fgroup">
+      <label>Mức độ ưu tiên</label>
+      <select id="fPrio" disabled><option value="">Tự động theo trường</option></select>
+    </div>
+    <div class="fgroup">
+      <label>AM phụ trách <span style="text-transform:none;color:var(--red);">(chọn thủ công)</span></label>
+      <select id="fAM"><option value="">Chọn AM phụ trách</option></select>
+    </div>
+    <div class="fgroup">
+      <label>Trạng thái tiếp xúc</label>
+      <select id="fStatus">
+        <option value="">Tất cả</option>
+        <option value="done">Đã tiếp xúc</option>
+        <option value="pending">Chưa tiếp xúc</option>
+        <option value="noam">Chưa giao AM</option>
+      </select>
+    </div>
+    <div class="fgroup">
+      <label>Kết quả tiếp xúc <span style="text-transform:none;color:var(--red);">(nhập thủ công)</span></label>
+      <input type="text" id="fKetqua" placeholder="Nhập kết quả tiếp xúc..." autocomplete="off">
+    </div>
+    <div class="fgroup">
+      <label>Ngày tiếp xúc <span style="text-transform:none;color:#9aa0a4;">(nhập thủ công)</span></label>
+      <input type="date" id="fNgay">
+    </div>
+    <div class="fgroup">
+      <label>Người đại diện <span style="text-transform:none;color:#9aa0a4;">(nhập thủ công)</span></label>
+      <input type="text" id="fNguoi" placeholder="Nhập người đại diện..." autocomplete="off">
+    </div>
+    <div class="fgroup">
+      <label>SĐT <span style="text-transform:none;color:#9aa0a4;">(nhập thủ công)</span></label>
+      <input type="tel" id="fSdt" placeholder="Nhập số điện thoại..." inputmode="tel" autocomplete="off">
+    </div>
+    <div class="fgroup">
+      <label>Dùng DV Viettel <span style="text-transform:none;color:#9aa0a4;">(nhập thủ công)</span></label>
+      <input type="text" id="fDasudung" placeholder="Nhập tình trạng sử dụng DV Viettel..." autocomplete="off">
+    </div>
+    <div class="fgroup">
+      <label>Đối thủ <span style="text-transform:none;color:#9aa0a4;">(nhập thủ công)</span></label>
+      <input type="text" id="fNcc" placeholder="Nhập nhà cung cấp/đối thủ..." autocomplete="off">
+    </div>
+    <div class="fgroup" style="flex:1 1 280px;">
+      <label>Ghi chú <span style="text-transform:none;color:#9aa0a4;">(nhập thủ công)</span></label>
+      <input type="text" id="fGhichu" placeholder="Nhập ghi chú..." autocomplete="off" style="min-width:260px;width:100%;">
+    </div>
+    <button class="save-btn" id="saveBtn" type="button">LƯU</button>
+    <div class="save-msg" id="saveMsg"></div>
+    <button class="reset-btn" onclick="resetFilters()">Xóa lọc</button>
+    <div class="count-pill" id="countPill">150 trường</div>
+  </div>
+
+  <div class="card" style="padding:0;">
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>STT</th>
+            <th>Xã/Phường</th>
+            <th>Cấp học</th>
+            <th>Trường sau sắp xếp</th>
+            <th>Đầu mối giảm</th>
+            <th>Mức ưu tiên</th>
+            <th>AM phụ trách</th>
+            <th>Ngày TX</th>
+            <th>Người đại diện</th>
+            <th>SĐT</th>
+            <th>Dùng DV Viettel?</th>
+            <th>Đối thủ</th>
+            <th>Kết quả tiếp xúc</th>
+            <th>Ghi chú</th>
+          </tr>
+        </thead>
+        <tbody id="tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="footer-note">Dashboard dùng chung · Google Sheet trung tâm đã kết nối · Viettel Cao Bằng</div>
+</div>
+
+<script>
+const RAW = [{"stt": 1, "xa": "Xã Khánh Xuân", "cap": "Mầm non", "truong": "Trường Mầm non Khánh Xuân", "thanhphan": "MN Phan Thanh, MN Khánh Xuân", "giam": 1, "hinhthuc": "Trường chính + Phân hiệu", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 2, "xa": "Xã Hà Quảng", "cap": "Mầm non", "truong": "Trường Mầm non Đào Ngạn", "thanhphan": "MN Đào Ngạn, MN Phù Ngọc", "giam": 1, "hinhthuc": "Trường chính + Phân hiệu", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (6 đầu mối giảm)", "am": "Lô Thị Ngọc Quyên", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 3, "xa": "Xã Hà Quảng", "cap": "Mầm non", "truong": "Trường Mầm non Mã Ba", "thanhphan": "MN Mã Ba, MN Hạ Thôn", "giam": 1, "hinhthuc": "Trường chính + Phân hiệu", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (6 đầu mối giảm)", "am": "Lô Thị Ngọc Quyên", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 4, "xa": "Xã Hà Quảng", "cap": "Mầm non", "truong": "Trường Mầm non Hồng Sỹ", "thanhphan": "MN Hồng Sỹ, MN Sỹ Hai", "giam": 1, "hinhthuc": "Trường chính + Phân hiệu", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (6 đầu mối giảm)", "am": "Lô Thị Ngọc Quyên", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 5, "xa": "Xã Hà Quảng", "cap": "Tiểu học", "truong": "Trường Tiểu học Nà Giàng", "thanhphan": "TH Đào Ngạn, TH Nà Giàng", "giam": 1, "hinhthuc": "Trường chính + Phân hiệu", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (6 đầu mối giảm)", "am": "Lô Thị Ngọc Quyên", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 6, "xa": "Xã Hà Quảng", "cap": "TH&THCS", "truong": "Trường TH&THCS Hồng Sỹ", "thanhphan": "TH Hồng Sỹ, THCS Hồng Sỹ", "giam": 1, "hinhthuc": "Điểm TH + Điểm THCS", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (6 đầu mối giảm)", "am": "Lô Thị Ngọc Quyên", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 7, "xa": "Xã Hà Quảng", "cap": "THCS", "truong": "Trường THCS Nà Giàng", "thanhphan": "THCS Đào Ngạn, THCS Nà Giàng", "giam": 1, "hinhthuc": "Trường chính + Phân hiệu", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (6 đầu mối giảm)", "am": "Lô Thị Ngọc Quyên", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 8, "xa": "Xã Hưng Đạo", "cap": "Mầm non", "truong": "Trường Mầm non Kim Cúc", "thanhphan": "MN Kim Cúc, MN Hưng Thịnh", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 9, "xa": "Xã Hưng Đạo", "cap": "Tiểu học", "truong": "Trường PTDTBT Tiểu học Hưng Đạo", "thanhphan": "TH Kim Cúc, PTDTBT TH Hưng Đạo", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 10, "xa": "Xã Hưng Đạo", "cap": "THCS", "truong": "Trường PTDTBT THCS Hưng Đạo", "thanhphan": "PTDTBT THCS Kim Cúc, PTDTBT THCS Hưng Đạo", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 11, "xa": "Xã Bảo Lạc", "cap": "Mầm non", "truong": "Trường Mầm non Bảo Lạc", "thanhphan": "MN Hồng Trị, MN Bảo Lạc, MN Bảo Toàn", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 12, "xa": "Xã Bảo Lạc", "cap": "TH&THCS", "truong": "Trường PTDTBT TH&THCS Hồng Trị", "thanhphan": "TH Hồng Trị, PTDTBT THCS Hồng Trị", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "27/08/2026", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "Có", "dichvu": "Chữ ký số", "ncc": "VNPT/VinaPhone", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 13, "xa": "Xã Bảo Lạc", "cap": "TH&THCS", "truong": "Trường PTDTBT TH&THCS Bảo Toàn", "thanhphan": "PTDTBT TH Bảo Toàn, PTDTBT THCS Bảo Toàn", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "27/08/2026", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "Có", "dichvu": "Chữ ký số", "ncc": "VNPT/VinaPhone", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 14, "xa": "Xã Ca Thành", "cap": "Mầm non", "truong": "Trường Mầm non Ca Thành", "thanhphan": "MN Yên Lạc, MN Ca Thành", "giam": 1, "hinhthuc": "01 Phân hiệu + 11 điểm trường lẻ", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 15, "xa": "Xã Ca Thành", "cap": "TH&THCS", "truong": "Trường PTDTBT TH&THCS Ca Thành", "thanhphan": "TH Ca Thành, PTDTBT THCS Ca Thành", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 16, "xa": "Xã Đức Long", "cap": "Mầm non", "truong": "Trường Mầm non Đức Long", "thanhphan": "MN Đức Long, MN Lê Lợi, MN Thụy Hùng", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Hoàng Thị Huệ", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 17, "xa": "Xã Đức Long", "cap": "TH&THCS", "truong": "Trường PT nội trú TH&THCS Đức Long", "thanhphan": "TH&THCS Đức Long, TH&THCS Lê Lợi, TH&THCS Thụy Hùng", "giam": 2, "hinhthuc": "Đã sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Hoàng Thị Huệ", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 18, "xa": "Xã Đình Phong", "cap": "Mầm non", "truong": "Trường Mầm non Đình Phong", "thanhphan": "MN Đình Phong, MN Ngọc Côn, MN Ngọc Khê, MN Phong Nặm", "giam": 3, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (7 đầu mối giảm)", "am": "Hoàng Thị Lan", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 19, "xa": "Xã Đình Phong", "cap": "TH&THCS", "truong": "Trường TH&THCS Phong Nặm", "thanhphan": "TH Ngọc Côn, TH&THCS Phong Nặm", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (7 đầu mối giảm)", "am": "Hoàng Thị Lan", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 20, "xa": "Xã Đình Phong", "cap": "Liên cấp", "truong": "Trường Nội trú biên giới (Đình Phong)", "thanhphan": "TH Đình Phong, THCS Ngọc Khê, THCS Đình Phong, PTDTBT TH Ngọc Khê", "giam": 3, "hinhthuc": "Sáp nhập thành trường nội trú biên giới", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (7 đầu mối giảm)", "am": "Hoàng Thị Lan", "ngay": "20/08/2026", "nguoi": "Cô Huỳnh", "chucvu": "Hiệu phó", "sdt": "829293485", "dasudung": "Có", "dichvu": "Internet FTTH", "ncc": "VNPT/VinaPhone", "ketqua": "Cần thời gian cân nhắc", "ghichu": ""}, {"stt": 21, "xa": "Xã Đàm Thủy", "cap": "Mầm non", "truong": "Trường Mầm non Đàm Thủy", "thanhphan": "MN Phong Châu, MN Chí Viễn", "giam": 1, "hinhthuc": "Sáp nhập (MN Thác Bản Giốc giữ nguyên)", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Hoàng Thị Lan", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 22, "xa": "Xã Đàm Thủy", "cap": "Tiểu học", "truong": "Trường Tiểu học Đàm Thủy", "thanhphan": "TH Chí Viễn, TH&THCS Phong Châu (cấp TH)", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Hoàng Thị Lan", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 23, "xa": "Xã Đàm Thủy", "cap": "Liên cấp", "truong": "Trường PTNT TH&THCS Đàm Thủy", "thanhphan": "TH Đàm Thủy, THCS Pò Tấu, THCS Đàm Thủy, TH&THCS Phong Châu (cấp THCS)", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Trường mới hoàn toàn", "lydo": "Trường hoàn toàn mới, chưa gắn hợp đồng NCC", "am": "Hoàng Thị Lan", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 24, "xa": "Xã Sơn Lộ", "cap": "Mầm non", "truong": "Bậc Mầm non Sơn Lập (thuộc PTDTBT TH&THCS Sơn Lập)", "thanhphan": "MN Sơn Lộ", "giam": 0, "hinhthuc": "Sáp nhập với bậc GD Mầm non Sơn Lập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 25, "xa": "Xã Lũng Nặm", "cap": "Mầm non", "truong": "01 trường Mầm non (Lũng Nặm)", "thanhphan": "MN Vần Dính, MN Thượng Thôn, MN Nặm Nhũng", "giam": 2, "hinhthuc": "Sáp nhập thành 1 trường mầm non", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Lô Thị Ngọc Quyên", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 26, "xa": "Xã Lũng Nặm", "cap": "Liên cấp", "truong": "Trường PTNT TH&THCS Lũng Nặm", "thanhphan": "TH Nặm Nhũng, PTDTBT THCS Nặm Nhũng, PTDTBT THCS Thượng Thôn, TH&THCS Vần Dính", "giam": 3, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Trường mới hoàn toàn", "lydo": "Trường hoàn toàn mới, chưa gắn hợp đồng NCC", "am": "Hoàng Thị Huệ", "ngay": "17/08/2026", "nguoi": "Thế Anh", "chucvu": "Hiệu trưởng", "sdt": "0374036888", "dasudung": "Có", "dichvu": "", "ncc": "VNPT/VinaPhone", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 27, "xa": "Xã Bảo Lâm", "cap": "Mầm non", "truong": "Trường Mầm non Bảo Lâm", "thanhphan": "MN Bảo Lâm, MN Mông Ân, MN Vĩnh Phong", "giam": 2, "hinhthuc": "Điểm chính + 2 Phân hiệu", "uutien": "Ưu tiên 1 - KHẨN", "lydo": "Xã điểm nóng thâm nhập DVKH (0%, T7/2026)", "am": "Bế Thị Hoài", "ngay": "18/08/2026", "nguoi": "c Hà", "chucvu": "Hiệu trưởng", "sdt": "976406068", "dasudung": "Có", "dichvu": "Chữ ký số", "ncc": "VNPT/VinaPhone", "ketqua": "Từ chối", "ghichu": ""}, {"stt": 28, "xa": "Xã Bảo Lâm", "cap": "Tiểu học", "truong": "Trường Tiểu học/THCS Pác Miầu", "thanhphan": "TH Bảo Lâm, THCS Pác Miầu", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 1 - KHẨN", "lydo": "Xã điểm nóng thâm nhập DVKH (0%, T7/2026)", "am": "Bế Thị Hoài", "ngay": "18/08/2026", "nguoi": "a Đệ", "chucvu": "Hiệu trưởng", "sdt": "842077268", "dasudung": "Không", "dichvu": "", "ncc": "VNPT/VinaPhone", "ketqua": "Cần thời gian cân nhắc", "ghichu": ""}, {"stt": 29, "xa": "Xã Bảo Lâm", "cap": "TH&THCS", "truong": "Trường PTDTBT THCS Mông Ân", "thanhphan": "TH Mông Ân, PTDTBT THCS Mông Ân", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 1 - KHẨN", "lydo": "Xã điểm nóng thâm nhập DVKH (0%, T7/2026)", "am": "Bế Thị Hoài", "ngay": "22/08/2026", "nguoi": "c Nghĩa", "chucvu": "Hiệu trưởng", "sdt": "985723697", "dasudung": "Không", "dichvu": "SIM/Data di động", "ncc": "VNPT/VinaPhone", "ketqua": "Cần thời gian cân nhắc", "ghichu": ""}, {"stt": 30, "xa": "Xã Bảo Lâm", "cap": "TH&THCS", "truong": "Trường PTDTBT TH&THCS Vĩnh Phong", "thanhphan": "TH Vĩnh Phong, PTDTBT TH&THCS Vĩnh Phong", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 1 - KHẨN", "lydo": "Xã điểm nóng thâm nhập DVKH (0%, T7/2026)", "am": "Bế Thị Hoài", "ngay": "22/08/2026", "nguoi": "a Bách", "chucvu": "Hiệu trưởng", "sdt": "0962204083", "dasudung": "Không", "dichvu": "SIM/Data di động", "ncc": "VNPT/VinaPhone", "ketqua": "Cần thời gian cân nhắc", "ghichu": ""}, {"stt": 31, "xa": "Xã Quang Long", "cap": "Mầm non", "truong": "Trường Mầm non Thắng Lợi", "thanhphan": "MN Quang Long, MN Đức Quang, MN Thắng Lợi", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 32, "xa": "Xã Quang Long", "cap": "Liên cấp", "truong": "Trường TH&THCS Quang Long", "thanhphan": "TH Thắng Lợi, TH&THCS Quang Long, TH&THCS Đức Quang, THCS Thắng Lợi", "giam": 3, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Trường mới hoàn toàn", "lydo": "Trường hoàn toàn mới, chưa gắn hợp đồng NCC", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 33, "xa": "Xã Nguyễn Huệ", "cap": "Tiểu học/THCS", "truong": "Trường PTDTBT THCS Ngũ Lão", "thanhphan": "TH Ngũ Lão, PTDTBT THCS Ngũ Lão", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 34, "xa": "Xã Nguyễn Huệ", "cap": "TH&THCS", "truong": "Trường PTDTBT TH&THCS Quang Trung", "thanhphan": "TH Hà Trì, PTDTBT TH&THCS Quang Trung", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 35, "xa": "Xã Nguyễn Huệ", "cap": "TH&THCS", "truong": "Trường TH&THCS Nguyễn Huệ", "thanhphan": "TH&THCS Nguyễn Huệ, TH&THCS Trung Vương", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 36, "xa": "Xã Minh Tâm", "cap": "Mầm non", "truong": "Trường Mầm non Minh Tâm", "thanhphan": "MN Minh Tâm, MN Lang Môn", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "c Mây KT", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 37, "xa": "Xã Minh Tâm", "cap": "Tiểu học", "truong": "Trường Tiểu học Minh Tâm", "thanhphan": "TH Minh Tâm, TH Bắc Hợp", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "c Mây KT", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 38, "xa": "Xã Minh Tâm", "cap": "Tiểu học", "truong": "Trường Tiểu học Trương Lương", "thanhphan": "TH Trương Lương, TH Công Trừng", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 39, "xa": "Xã Minh Tâm", "cap": "THCS", "truong": "Trường THCS Trương Lương", "thanhphan": "THCS Trương Lương, PTDTBT THCS Công Trừng", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 40, "xa": "Xã Lý Bôn", "cap": "Mầm non", "truong": "Trường Mầm non Lý Bôn", "thanhphan": "MN Lý Bôn, MN Vĩnh Quang", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 41, "xa": "Xã Lý Bôn", "cap": "Tiểu học", "truong": "Trường Tiểu học Lý Bôn", "thanhphan": "TH Lý Bôn, TH Vĩnh Quang", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 42, "xa": "Xã Trùng Khánh", "cap": "Mầm non", "truong": "Giảm trường Mầm non Đình Minh", "thanhphan": "MN Đình Minh", "giam": 1, "hinhthuc": "Giảm trường", "uutien": "Ưu tiên 1 - KHẨN", "lydo": "Xã điểm nóng thâm nhập DVKH (33,3%, T7/2026)", "am": "Hoàng Thị Lan", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 43, "xa": "Xã Trùng Khánh", "cap": "Mầm non", "truong": "Trường Mầm non Trùng Khánh", "thanhphan": "MN Trùng Khánh, MN Lăng Hiếu", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 1 - KHẨN", "lydo": "Xã điểm nóng thâm nhập DVKH (33,3%, T7/2026)", "am": "Hoàng Thị Lan", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 44, "xa": "Xã Trùng Khánh", "cap": "Tiểu học", "truong": "Trường Tiểu học Trùng Khánh", "thanhphan": "TH Trùng Khánh, TH Đình Minh, TH Ngọc Chung", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 1 - KHẨN", "lydo": "Xã điểm nóng thâm nhập DVKH (33,3%, T7/2026)", "am": "Hoàng Thị Lan", "ngay": "19/08/2026", "nguoi": "Đinh Thị Bình", "chucvu": "Hiệu trưởng", "sdt": "988468973", "dasudung": "Có", "dichvu": "Internet FTTH", "ncc": "VNPT/VinaPhone", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 45, "xa": "Xã Trùng Khánh", "cap": "THCS", "truong": "Trường THCS Trùng Khánh", "thanhphan": "THCS Trùng Khánh, THCS Lăng Hiếu", "giam": 1, "hinhthuc": "Thành lập", "uutien": "Ưu tiên 1 - KHẨN", "lydo": "Xã điểm nóng thâm nhập DVKH (33,3%, T7/2026)", "am": "Hoàng Thị Lan", "ngay": "20/08/2026", "nguoi": "C Uyên, Chị Dương Hiển", "chucvu": "Chuyên phụ trách kí số", "sdt": "376243836", "dasudung": "Có", "dichvu": "Chữ ký số", "ncc": "VNPT/VinaPhone", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 46, "xa": "Xã Phan Thanh", "cap": "Mầm non", "truong": "Trường Mầm non Phan Thanh", "thanhphan": "MN Phan Thanh, MN Mai Long", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 47, "xa": "Xã Phan Thanh", "cap": "Tiểu học", "truong": "Trường PTDTBT TH Phan Thanh", "thanhphan": "TH Mai Long, PTDTBT TH Phan Thanh", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 48, "xa": "Xã Phan Thanh", "cap": "THCS", "truong": "Trường PTDTBT THCS Phan Thanh", "thanhphan": "PTDTBT THCS Mai Long, PTDTBT THCS Phan Thanh", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 49, "xa": "Xã Thành Công", "cap": "Mầm non", "truong": "Trường Mầm non Thành Công", "thanhphan": "MN Quang Thành, MN Thành Công", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "VNPT/VinaPhone", "ketqua": "Đang dùng đối thủ - cần chăm sóc lại", "ghichu": ""}, {"stt": 50, "xa": "Xã Thành Công", "cap": "TH&THCS", "truong": "Trường PTDTBT TH&THCS Quang Thành", "thanhphan": "PTDTBT TH Quang Thành, PTDTBT THCS Quang Thành", "giam": 1, "hinhthuc": "Sáp nhập trường liên cấp", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "Chữ ký số", "ncc": "VNPT/VinaPhone", "ketqua": "", "ghichu": ""}, {"stt": 51, "xa": "Xã Thành Công", "cap": "TH&THCS", "truong": "Trường PTDTBT TH&THCS Thành Công", "thanhphan": "PTDTBT TH Thành Công, PTDTBT THCS Thành Công", "giam": 1, "hinhthuc": "Sáp nhập trường liên cấp", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "Chữ ký số", "ncc": "VNPT/VinaPhone", "ketqua": "", "ghichu": ""}, {"stt": 52, "xa": "Xã Lý Quốc", "cap": "Mầm non", "truong": "Trường Mầm non Lý Quốc", "thanhphan": "MN Lý Quốc, MN Minh Long, MN Đồng Loan", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 53, "xa": "Xã Lý Quốc", "cap": "Tiểu học", "truong": "Trường Tiểu học Lý Quốc", "thanhphan": "TH Lý Quốc, TH Minh Long, TH Đồng Loan", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 54, "xa": "Xã Kim Đồng", "cap": "Mầm non", "truong": "Trường Mầm non Kim Đồng", "thanhphan": "PTCS Thái Cường (MN), TH&THCS Hồng Nam (MN), MN Kim Đồng", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Kết hợp lịch HTX", "lydo": "Kết hợp lịch chuyển đổi số HTX tại xã", "am": "Hoàng Thị Huệ", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 55, "xa": "Xã Kim Đồng", "cap": "Tiểu học", "truong": "Trường Tiểu học Kim Đồng", "thanhphan": "PTCS Thái Cường (TH), TH&THCS Hồng Nam (TH), TH Kim Đồng", "giam": 0, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Kết hợp lịch HTX", "lydo": "Kết hợp lịch chuyển đổi số HTX tại xã", "am": "Hoàng Thị Huệ", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 56, "xa": "Xã Kim Đồng", "cap": "THCS", "truong": "Trường THCS Kim Đồng", "thanhphan": "PTCS Thái Cường (THCS), TH&THCS Hồng Nam (THCS), THCS Kim Đồng", "giam": 0, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Kết hợp lịch HTX", "lydo": "Kết hợp lịch chuyển đổi số HTX tại xã", "am": "Hoàng Thị Huệ", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 57, "xa": "Phường Thục Phán", "cap": "Mầm non", "truong": "Trường Mầm non 3-10", "thanhphan": "MN 3-10, MN 1-6", "giam": 1, "hinhthuc": "Trường chính + Phân hiệu", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (7 đầu mối giảm)", "am": "Đinh Phương Thảo", "ngay": "21/08/2026", "nguoi": "Cô Nhị", "chucvu": "Hiệu trưởng", "sdt": "918671594", "dasudung": "Một phần", "dichvu": "Chữ ký số", "ncc": "VNPT/VinaPhone", "ketqua": "Cần thời gian cân nhắc", "ghichu": ""}, {"stt": 58, "xa": "Phường Thục Phán", "cap": "Mầm non", "truong": "Trường Mầm non Hưng Đạo", "thanhphan": "MN Hưng Đạo, MN Hoàng Tung", "giam": 1, "hinhthuc": "Trường chính + Phân hiệu", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (7 đầu mối giảm)", "am": "Đinh Phương Thảo", "ngay": "21/08/2026", "nguoi": "Cô Trang", "chucvu": "Hiệu trưởng", "sdt": "916009070", "dasudung": "Không", "dichvu": "", "ncc": "VNPT/VinaPhone", "ketqua": "Cần thời gian cân nhắc", "ghichu": ""}, {"stt": 59, "xa": "Phường Thục Phán", "cap": "TH/THCS", "truong": "Trường THCS Hợp Giang", "thanhphan": "TH Hợp Giang, THCS Hợp Giang", "giam": 1, "hinhthuc": "Phân hiệu + Trường chính", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (7 đầu mối giảm)", "am": "Đinh Phương Thảo", "ngay": "21/08/2026", "nguoi": "Cô Hằng", "chucvu": "Hiệu trưởng", "sdt": "915425240", "dasudung": "Không", "dichvu": "", "ncc": "VNPT/VinaPhone", "ketqua": "Đang dùng đối thủ - cần chăm sóc lại", "ghichu": ""}, {"stt": 60, "xa": "Phường Thục Phán", "cap": "Tiểu học", "truong": "Trường Tiểu học Sông Hiến", "thanhphan": "TH Sông Hiến, TH Đề Thám", "giam": 1, "hinhthuc": "Trường chính + Phân hiệu", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (7 đầu mối giảm)", "am": "Nguyễn Thị Thu", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 61, "xa": "Phường Thục Phán", "cap": "THCS", "truong": "Trường THCS Đề Thám", "thanhphan": "THCS Đề Thám, THCS Sông Hiến", "giam": 1, "hinhthuc": "Trường chính + Phân hiệu", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (7 đầu mối giảm)", "am": "Nguyễn Thị Thu", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 62, "xa": "Phường Thục Phán", "cap": "TH/THCS", "truong": "Trường THCS Cao Bình", "thanhphan": "TH Hưng Đạo, THCS Cao Bình", "giam": 1, "hinhthuc": "Phân hiệu + Trường chính", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (7 đầu mối giảm)", "am": "Nguyễn Thị Thu", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 63, "xa": "Phường Thục Phán", "cap": "TH/THCS", "truong": "Trường THCS Hoàng Tung", "thanhphan": "TH Hoàng Tung, THCS Hoàng Tung", "giam": 1, "hinhthuc": "Phân hiệu + Trường chính", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (7 đầu mối giảm)", "am": "Nguyễn Thị Thu", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 64, "xa": "Xã Đoài Dương", "cap": "TH&THCS", "truong": "Trường TH&THCS Cao Thăng", "thanhphan": "TH Cao Thăng, THCS Cao Thăng", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Hoàng Thị Lan", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 65, "xa": "Xã Đoài Dương", "cap": "Tiểu học", "truong": "Trường Tiểu học Đoài Côn", "thanhphan": "TH Đoài Côn, TH Thân Giáp", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Hoàng Thị Lan", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 66, "xa": "Xã Đoài Dương", "cap": "TH&THCS", "truong": "Trường TH&THCS Thông Huề", "thanhphan": "TH Thông Huề, THCS Thông Huề, TH Trung Phúc", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Hoàng Thị Lan", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 67, "xa": "Phường Tân Giang", "cap": "Mầm non", "truong": "Trường Mầm non Duyệt Trung", "thanhphan": "MN Chu Trinh, MN Duyệt Trung", "giam": 1, "hinhthuc": "Phân hiệu + Trường chính", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Nguyễn Thị Thu", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 68, "xa": "Phường Tân Giang", "cap": "THCS", "truong": "Trường THCS Tân Giang", "thanhphan": "TH Tân Giang, TH Duyệt Trung, THCS Tân Giang", "giam": 2, "hinhthuc": "2 Phân hiệu + Trường chính", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Nguyễn Thị Thu", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 69, "xa": "Phường Tân Giang", "cap": "Tiểu học", "truong": "Trường Tiểu học Lê Chung", "thanhphan": "TH Tân An, TH Lê Chung", "giam": 1, "hinhthuc": "Phân hiệu + Trường chính", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Nguyễn Thị Thu", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 70, "xa": "Xã Tĩnh Túc", "cap": "Mầm non", "truong": "Trường Mầm non Tĩnh Túc", "thanhphan": "MN Tĩnh Túc, MN Vũ Nông, MN Triệu Nguyên", "giam": 2, "hinhthuc": "Trường chính + 2 Điểm trường", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 71, "xa": "Xã Tĩnh Túc", "cap": "TH&THCS", "truong": "Trường PTDTBT TH&THCS Vũ Nông", "thanhphan": "TH Vũ Nông, PTDTBT THCS Vũ Nông", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "Chữ ký số", "ncc": "VNPT/VinaPhone", "ketqua": "", "ghichu": ""}, {"stt": 72, "xa": "Xã Độc Lập", "cap": "Mầm non", "truong": "Trường Mầm non Độc Lập", "thanhphan": "MN Quảng Hưng, MN Độc Lập, MN Háng Chầu", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "C Thảo KT", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 73, "xa": "Xã Độc Lập", "cap": "TH&THCS", "truong": "Trường TH&THCS Độc Lập", "thanhphan": "TH Độc Lập, THCS Bình Lăng, THCS Độc Lập", "giam": 2, "hinhthuc": "Thành lập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "C Hồng HT", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 74, "xa": "Xã Độc Lập", "cap": "TH&THCS", "truong": "Trường TH&THCS Quảng Hưng", "thanhphan": "TH&THCS Pò Rè, TH&THCS Quảng Hưng", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "C Thảo KT", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 75, "xa": "Xã Tam Kim", "cap": "Tiểu học", "truong": "Trường PTDTBT Tiểu học Tam Kim", "thanhphan": "PTDTBT TH Hưng Đạo, TH&THCS Tam Kim (khối TH)", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 76, "xa": "Xã Tam Kim", "cap": "THCS", "truong": "Trường PTDTBT THCS Tam Kim", "thanhphan": "TH Hoa Thám, PTDTBT THCS Hoa Thám, PTDTBT THCS Hưng Đạo, TH&THCS Tam Kim (khối THCS)", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "A Khiêm", "chucvu": "HT", "sdt": "", "dasudung": "Có", "dichvu": "Chữ ký số", "ncc": "VNPT/VinaPhone", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 77, "xa": "Xã Tam Kim", "cap": "Mầm non", "truong": "Trường Mầm non Tam Kim", "thanhphan": "MN Tam Kim, MN Hoa Thám, MN Hưng Đạo", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "c Lan", "chucvu": "HT", "sdt": "", "dasudung": "Có", "dichvu": "Chữ ký số", "ncc": "Không", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 78, "xa": "Xã Nguyên Bình", "cap": "Mầm non", "truong": "Trường Mầm non Nguyên Bình", "thanhphan": "MN Nguyên Bình, MN Thể Dục, MN Minh Thanh", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (6 đầu mối giảm)", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "Chữ ký số", "ncc": "VNPT/VinaPhone", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 79, "xa": "Xã Nguyên Bình", "cap": "Tiểu học", "truong": "Trường Tiểu học Nguyên Bình", "thanhphan": "TH Thể Dục, TH Nguyên Bình, TH Thái Học, TH Minh Thanh", "giam": 3, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (6 đầu mối giảm)", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "Chữ ký số", "ncc": "VNPT/VinaPhone", "ketqua": "", "ghichu": ""}, {"stt": 80, "xa": "Xã Nguyên Bình", "cap": "THCS", "truong": "Trường THCS Nguyên Bình", "thanhphan": "THCS Minh Thanh, THCS Nguyên Bình", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (6 đầu mối giảm)", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "Chữ ký số", "ncc": "VNPT/VinaPhone", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 81, "xa": "Xã Quang Hán", "cap": "Mầm non", "truong": "Trường Mầm non Quang Hán", "thanhphan": "MN Quang Hán, MN Quang Vinh, MN Lưu Ngọc", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Lô Thị Ngọc Quyên", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 82, "xa": "Xã Quang Hán", "cap": "Liên cấp", "truong": "Trường PT Nội trú TH&THCS Quang Hán", "thanhphan": "TH Quang Vinh, TH Lưu Ngọc, PTDTBT THCS Quang Vinh-Lưu Ngọc, TH&THCS Quang Hán", "giam": 3, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Trường mới hoàn toàn", "lydo": "Trường hoàn toàn mới, chưa gắn hợp đồng NCC", "am": "Lô Thị Ngọc Quyên", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 83, "xa": "Xã Quang Hán", "cap": "Tiểu học", "truong": "Trường Tiểu học Cô Mười", "thanhphan": "TH&THCS Cô Mười (giải thể; khối THCS chuyển vào PT Nội trú TH&THCS Quang Hán)", "giam": 0, "hinhthuc": "Giải thể, thành lập TH Cô Mười", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Lô Thị Ngọc Quyên", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 84, "xa": "Xã Nam Tuấn", "cap": "THCS", "truong": "Trường THCS Dân Chủ", "thanhphan": "TH Dân Chủ, THCS Dân Chủ", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Kết hợp lịch HTX", "lydo": "Kết hợp lịch chuyển đổi số HTX tại xã", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 85, "xa": "Xã Nam Tuấn", "cap": "THCS", "truong": "Trường THCS Đức Long", "thanhphan": "TH Nam Tuấn, TH Đức Long, THCS Nam Tuấn, THCS Đức Long", "giam": 3, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Kết hợp lịch HTX", "lydo": "Kết hợp lịch chuyển đổi số HTX tại xã", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 86, "xa": "Xã Nam Quang", "cap": "Mầm non", "truong": "Trường Mầm non Nam Quang", "thanhphan": "MN Tân Việt, MN Nam Quang", "giam": 1, "hinhthuc": "Trụ sở chính", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 87, "xa": "Xã Nam Quang", "cap": "Liên cấp", "truong": "Trường PTDTBT TH&THCS Nam Quang", "thanhphan": "TH Pác Ròm, PTDTBT TH&THCS Tân Việt, TH&THCS Nam Quang", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Trường mới hoàn toàn", "lydo": "Trường hoàn toàn mới, chưa gắn hợp đồng NCC", "am": "Bế Thị Hoài", "ngay": "18/08/2026", "nguoi": "Chị Luyến", "chucvu": "KT", "sdt": "", "dasudung": "Không", "dichvu": "Chưa sử dụng", "ncc": "Khác", "ketqua": "Cần thời gian cân nhắc", "ghichu": ""}, {"stt": 88, "xa": "Xã Nam Quang", "cap": "TH&THCS", "truong": "Trường PTDTBT TH&THCS Nam Cao", "thanhphan": "PTDTBT TH&THCS Nam Cao, TH Nam Cao", "giam": 1, "hinhthuc": "Trụ sở chính", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 89, "xa": "Xã Yên Thổ", "cap": "Mầm non", "truong": "Trường Mầm non Yên Thổ", "thanhphan": "MN Thái Học, MN Thái Sơn, MN Yên Thổ", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (6 đầu mối giảm)", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 90, "xa": "Xã Yên Thổ", "cap": "Tiểu học", "truong": "Trường Tiểu học Yên Thổ", "thanhphan": "TH Bản Là, TH Thái Học, TH Yên Thổ", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (6 đầu mối giảm)", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 91, "xa": "Xã Yên Thổ", "cap": "TH&THCS", "truong": "Trường PTDTBT TH&THCS Yên Thổ", "thanhphan": "PTDTBT TH&THCS Thái Học, PTDTBT TH&THCS Thái Sơn", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (6 đầu mối giảm)", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 92, "xa": "Xã Hòa An", "cap": "Mầm non", "truong": "Trường Mầm non Nước Hai", "thanhphan": "MN Nước Hai, MN Bế Triều", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 1 - KHẨN", "lydo": "Xã điểm nóng thâm nhập DVKH (16,7%, T7/2026)", "am": "Phan Mỹ Nương", "ngay": "27/08/2026", "nguoi": "C Hiền", "chucvu": "KT", "sdt": "", "dasudung": "Có", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 93, "xa": "Xã Hòa An", "cap": "Mầm non", "truong": "Trường Mầm non Bình Long", "thanhphan": "MN Bình Long, MN Hồng Việt", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 1 - KHẨN", "lydo": "Xã điểm nóng thâm nhập DVKH (16,7%, T7/2026)", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 94, "xa": "Xã Hòa An", "cap": "TH&THCS", "truong": "Trường TH&THCS Hồng Việt", "thanhphan": "TH&THCS Hồng Việt, TH&THCS Bình Long", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 1 - KHẨN", "lydo": "Xã điểm nóng thâm nhập DVKH (16,7%, T7/2026)", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 95, "xa": "Xã Hòa An", "cap": "TH&THCS", "truong": "Trường TH&THCS Đại Tiến", "thanhphan": "TH&THCS Đại Tiến, TH&THCS Đức Xuân", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 1 - KHẨN", "lydo": "Xã điểm nóng thâm nhập DVKH (16,7%, T7/2026)", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 96, "xa": "Xã Canh Tân", "cap": "THCS", "truong": "Trường PTDTBT THCS Đức Thông", "thanhphan": "TH Đức Thông, PTDTBT THCS Đức Thông", "giam": 1, "hinhthuc": "Sát nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Hoàng Thị Huệ", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 97, "xa": "Xã Hạnh Phúc", "cap": "Mầm non", "truong": "Trường Mầm non Đống Đa", "thanhphan": "MN Hoàng Hải, MN Đống Đa", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Đinh Phương Thảo", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 98, "xa": "Xã Hạnh Phúc", "cap": "THCS", "truong": "Giải thể Trường THCS Hoàng Hải", "thanhphan": "THCS Hoàng Hải", "giam": 1, "hinhthuc": "Giải thể", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Đinh Phương Thảo", "ngay": "17/8", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 99, "xa": "Xã Hạnh Phúc", "cap": "Tiểu học", "truong": "Trường Tiểu học Hạnh Phúc", "thanhphan": "TH Lũng Luông, TH Hạnh Phúc", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Đinh Phương Thảo", "ngay": "", "nguoi": "Anh Hiến", "chucvu": "Kế toán", "sdt": "816652164", "dasudung": "Có", "dichvu": "Chữ ký số", "ncc": "", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 100, "xa": "Xã Hạnh Phúc", "cap": "TH&THCS", "truong": "Trường TH&THCS Hồng Định", "thanhphan": "TH Hồng Định, THCS Hồng Định", "giam": 1, "hinhthuc": "Sáp nhập thành trường liên cấp", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Đinh Phương Thảo", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 101, "xa": "Xã Hạnh Phúc", "cap": "TH&THCS", "truong": "Trường TH&THCS Tự Do", "thanhphan": "TH Co Rào, THCS Tự Do", "giam": 1, "hinhthuc": "Sáp nhập thành trường liên cấp", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Đinh Phương Thảo", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 102, "xa": "Xã Phục Hòa", "cap": "Mầm non", "truong": "Trường Mầm non Phục Hòa", "thanhphan": "MN Phục Hòa, MN Đại Sơn", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Đinh Phương Thảo", "ngay": "17/8", "nguoi": "Chị Thuần", "chucvu": "Hiệu trưởng", "sdt": "972194666", "dasudung": "Không", "dichvu": "Chưa sử dụng", "ncc": "VNPT/VinaPhone", "ketqua": "", "ghichu": ""}, {"stt": 103, "xa": "Xã Phục Hòa", "cap": "Liên cấp", "truong": "Trường PTNT TH&THCS Phục Hòa (Nội trú liên cấp)", "thanhphan": "TH Nà Quang, TH Đại Sơn, THCS Đại Sơn", "giam": 2, "hinhthuc": "Giải thể, đưa học sinh vào trường nội trú", "uutien": "Ưu tiên 2 - Trường mới hoàn toàn", "lydo": "Trường hoàn toàn mới, chưa gắn hợp đồng NCC", "am": "Đinh Phương Thảo", "ngay": "24/8", "nguoi": "Chị Dịu", "chucvu": "Kế toán", "sdt": "916803881", "dasudung": "Không", "dichvu": "Chưa sử dụng", "ncc": "VNPT/VinaPhone", "ketqua": "", "ghichu": ""}, {"stt": 104, "xa": "Xã Phục Hòa", "cap": "TH&THCS", "truong": "Trường TH&THCS Phục Hòa", "thanhphan": "TH Phục Hòa, THCS Phục Hòa", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Đinh Phương Thảo", "ngay": "17/8", "nguoi": "Chị Dịu", "chucvu": "Kế toán", "sdt": "916803881", "dasudung": "Không", "dichvu": "Chưa sử dụng", "ncc": "VNPT/VinaPhone", "ketqua": "", "ghichu": ""}, {"stt": 105, "xa": "Xã Phục Hòa", "cap": "TH&THCS", "truong": "Trường TH&THCS Tà Lùng", "thanhphan": "TH Tà Lùng, THCS Tà Lùng", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Đinh Phương Thảo", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 106, "xa": "Xã Thạch An", "cap": "Mầm non", "truong": "Trường Mầm non Thạch An", "thanhphan": "MN Lê Lai, MN Vân Trình", "giam": 1, "hinhthuc": "Sáp nhập, đổi tên", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Hoàng Thị Huệ", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 107, "xa": "Xã Thạch An", "cap": "TH&THCS", "truong": "Trường TH&THCS Tiên Hoàng", "thanhphan": "TH Tân Việt, TH&THCS Tiên Hoàng", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Hoàng Thị Huệ", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 108, "xa": "Xã Trường Hà", "cap": "Mầm non", "truong": "Trường Mầm non Xuân Hòa", "thanhphan": "MN Nà Sác, MN Pác Bó, MN Xuân Hòa, MN Quý Quân, MN Sóc Hà", "giam": 4, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (8 đầu mối giảm)", "am": "Lô Thị Ngọc Quyên", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 109, "xa": "Xã Trường Hà", "cap": "Liên cấp", "truong": "Trường Nội trú biên giới (Trường Hà)", "thanhphan": "TH Đàm Minh Viễn, THCS Lê Quảng Ba, PTDTBT TH&THCS Quý Quân", "giam": 2, "hinhthuc": "Sáp nhập thành trường nội trú biên giới", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (8 đầu mối giảm)", "am": "Hoàng Thị Huệ", "ngay": "17/08/2026", "nguoi": "C Lệ", "chucvu": "Hiệu trưởng", "sdt": "0386688987", "dasudung": "Có", "dichvu": "", "ncc": "VNPT/VinaPhone", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 110, "xa": "Xã Trường Hà", "cap": "Liên cấp", "truong": "Trường liên cấp (Trường Hà)", "thanhphan": "TH Xuân Hòa, TH&THCS Pác Bó, THCS Xuân Hòa", "giam": 2, "hinhthuc": "Sáp nhập thành trường liên cấp", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (8 đầu mối giảm)", "am": "Lô Thị Ngọc Quyên", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 111, "xa": "Xã Quảng Lâm", "cap": "Liên cấp", "truong": "Trường PTDTBT TH&THCS Quảng Lâm", "thanhphan": "TH Quảng Lâm, PTDTBT THCS Quảng Lâm, TH Nà Thắn", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Trường mới hoàn toàn", "lydo": "Trường hoàn toàn mới, chưa gắn hợp đồng NCC", "am": "Bế Thị Hoài", "ngay": "18/08/2026", "nguoi": "anh Thụ", "chucvu": "KT", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 112, "xa": "Xã Quảng Lâm", "cap": "Liên cấp", "truong": "Trường PTDTBT TH&THCS Thạch Lâm", "thanhphan": "TH Thạch Lâm, PTDTBT THCS Thạch Lâm", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Trường mới hoàn toàn", "lydo": "Trường hoàn toàn mới, chưa gắn hợp đồng NCC", "am": "Bế Thị Hoài", "ngay": "18/08/2026", "nguoi": "Anh Thụ", "chucvu": "KT", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 113, "xa": "Xã Vinh Quý", "cap": "Mầm non", "truong": "Trường Mầm non An Lạc", "thanhphan": "MN Kim Loan, MN An Lạc", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (6 đầu mối giảm)", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 114, "xa": "Xã Vinh Quý", "cap": "Mầm non", "truong": "Trường Mầm non Vinh Quý", "thanhphan": "MN Vinh Quý, MN Cô Ngân", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (6 đầu mối giảm)", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 115, "xa": "Xã Vinh Quý", "cap": "Tiểu học", "truong": "Trường Tiểu học Vinh Quý", "thanhphan": "TH An Lạc, TH Vinh Quý", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (6 đầu mối giảm)", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 116, "xa": "Xã Vinh Quý", "cap": "THCS", "truong": "Trường THCS Vinh Quý", "thanhphan": "THCS An Lạc, THCS Vinh Quý", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (6 đầu mối giảm)", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 117, "xa": "Xã Huy Giáp", "cap": "TH&THCS", "truong": "Trường PTDTBT TH&THCS Huy Giáp (điểm Huy Giáp)", "thanhphan": "TH Huy Giáp, PTDTBT THCS Huy Giáp", "giam": 1, "hinhthuc": "Điểm Tiểu học + Điểm THCS", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "a Cường", "chucvu": "Hiệu trưởng", "sdt": "", "dasudung": "Có", "dichvu": "Chữ ký số", "ncc": "VNPT/VinaPhone", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 118, "xa": "Xã Huy Giáp", "cap": "TH&THCS", "truong": "Trường PTDTBT TH&THCS Huy Giáp (điểm Đình Phùng)", "thanhphan": "TH Đình Phùng, PTDTBT THCS Đình Phùng", "giam": 1, "hinhthuc": "Điểm Tiểu học + Điểm THCS", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "a Cường", "chucvu": "Hiệu trưởng", "sdt": "", "dasudung": "Có", "dichvu": "Chữ ký số", "ncc": "VNPT/VinaPhone", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 119, "xa": "Xã Cốc Pàng", "cap": "Liên cấp", "truong": "Trường PTDTBT TH&THCS Cốc Pàng", "thanhphan": "PTDTBT TH Cốc Pàng, PTDTBT THCS Cốc Pàng, PTDTBT TH&THCS Đức Hạnh", "giam": 2, "hinhthuc": "Đổi tên, sáp nhập", "uutien": "Ưu tiên 2 - Trường mới hoàn toàn", "lydo": "Trường hoàn toàn mới, chưa gắn hợp đồng NCC", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "A Cường", "chucvu": "Hiệu trưởng", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 120, "xa": "Xã Trà Lĩnh", "cap": "Liên cấp", "truong": "Trường PTNT TH&THCS Trà Lĩnh", "thanhphan": "TH Quốc Toản, TH&THCS Cao Chương, THCS Hùng Quốc, THCS Quốc Toản", "giam": 3, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Trường mới hoàn toàn", "lydo": "Trường hoàn toàn mới, chưa gắn hợp đồng NCC", "am": "Hoàng Thị Lan", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 121, "xa": "Xã Thanh Long", "cap": "Mầm non", "truong": "Trường Mầm non Thanh Long", "thanhphan": "MN Thanh Long, MN Bình Lăng", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 122, "xa": "Xã Thanh Long", "cap": "Mầm non", "truong": "Trường Mầm non Ngọc Động", "thanhphan": "MN Yên Sơn, MN Ngọc Động", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 123, "xa": "Xã Thanh Long", "cap": "TH&THCS", "truong": "Trường TH&THCS Thanh Long", "thanhphan": "TH&THCS Thanh Long, TH&THCS Bình Lăng", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 124, "xa": "Xã Quang Trung", "cap": "Liên cấp", "truong": "Trường PTNT TH&THCS Quang Trung", "thanhphan": "TH&THCS Xuân Nội, TH&THCS Quang Trung, TH&THCS Tri Phương", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Trường mới hoàn toàn", "lydo": "Trường hoàn toàn mới, chưa gắn hợp đồng NCC", "am": "Hoàng Thị Lan", "ngay": "20/08/2026", "nguoi": "Thang Văn Tuân", "chucvu": "Hiệu trưởng", "sdt": "949439001", "dasudung": "Có", "dichvu": "Internet FTTH", "ncc": "VNPT/VinaPhone", "ketqua": "Cần thời gian cân nhắc", "ghichu": ""}, {"stt": 125, "xa": "Xã Hạ Lang", "cap": "Liên cấp", "truong": "Trường PTNT TH&THCS Hạ Lang", "thanhphan": "TH Thống Nhất, TH Thanh Nhật, THCS Thanh Nhật, THCS Thái Đức, THCS Thị Hoa", "giam": 4, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Trường mới hoàn toàn", "lydo": "Trường hoàn toàn mới, chưa gắn hợp đồng NCC", "am": "Phan Mỹ Nương", "ngay": "18/08/2026", "nguoi": "Anh Thành", "chucvu": "Hiệu trưởng", "sdt": "945402869", "dasudung": "Có", "dichvu": "Chữ ký số", "ncc": "VNPT/VinaPhone", "ketqua": "Đồng ý ký kết", "ghichu": ""}, {"stt": 126, "xa": "Xã Bể Văn Đàn", "cap": "Liên cấp", "truong": "Trường TH&THCS Bể Văn Đàn", "thanhphan": "TH Cách Linh, THCS Cách Linh, TH&THCS Bó Ngùa, TH&THCS Hồng Quang, TH&THCS Hồng Đại, TH&THCS Bể Văn Đàn", "giam": 5, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Trường mới hoàn toàn", "lydo": "Trường hoàn toàn mới, chưa gắn hợp đồng NCC", "am": "Bế Thị Hoài", "ngay": "26/8/2026", "nguoi": "c Nguyệt hiệu trưởng", "chucvu": "", "sdt": "", "dasudung": "Có", "dichvu": "Chữ ký số", "ncc": "Không", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 127, "xa": "Xã Minh Khai", "cap": "Mầm non", "truong": "Sáp nhập MN Minh Khai", "thanhphan": "MN Minh Khai, MN Quang Trọng", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Hoàng Thị Huệ", "ngay": "24/08/2026", "nguoi": "C Hương", "chucvu": "Kế toán", "sdt": "967970110", "dasudung": "Có", "dichvu": "", "ncc": "VNPT/VinaPhone", "ketqua": "Đang dùng đối thủ - cần chăm sóc lại", "ghichu": ""}, {"stt": 128, "xa": "Xã Đông Khê", "cap": "Mầm non", "truong": "Trường Mầm non Đông Khê", "thanhphan": "MN Đức Xuân, MN Đông Khê", "giam": 1, "hinhthuc": "01 trường chính + 2 điểm trường lẻ", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Hoàng Thị Huệ", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 129, "xa": "Xã Đông Khê", "cap": "Tiểu học", "truong": "Trường Tiểu học Đông Khê", "thanhphan": "TH Đông Khê, cấp Tiểu học của TH&THCS Đức Xuân", "giam": 0, "hinhthuc": "01 trường chính + 2 điểm trường lẻ", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Hoàng Thị Huệ", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 130, "xa": "Xã Đông Khê", "cap": "THCS", "truong": "Trường THCS Đông Khê", "thanhphan": "cấp THCS của TH&THCS Đức Xuân, THCS Đông Khê", "giam": 1, "hinhthuc": "01 trường chính + 1 điểm trường", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Hoàng Thị Huệ", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 131, "xa": "Xã Cô Ba", "cap": "Mầm non", "truong": "Trường Mầm non Cô Ba", "thanhphan": "MN Thượng Hà, MN Cô Ba", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "c Hiền", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 132, "xa": "Xã Cô Ba", "cap": "Liên cấp", "truong": "Trường PTNT TH&THCS Cô Ba", "thanhphan": "PTDTBT TH&THCS Thượng Hà, PTDTBT TH&THCS Cô Ba", "giam": 1, "hinhthuc": "Dồn vào", "uutien": "Ưu tiên 2 - Trường mới hoàn toàn", "lydo": "Trường hoàn toàn mới, chưa gắn hợp đồng NCC", "am": "Bế Thị Hoài", "ngay": "28/08/2026", "nguoi": "chị Nguyệt", "chucvu": "HT", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "VNPT/VinaPhone", "ketqua": "Cần thời gian cân nhắc", "ghichu": ""}, {"stt": 133, "xa": "Xã Quảng Uyên", "cap": "Mầm non", "truong": "Trường Mầm non Quảng Uyên", "thanhphan": "MN Chí Thảo, MN Quảng Uyên", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "chị Hoài KT", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 134, "xa": "Xã Quảng Uyên", "cap": "TH&THCS", "truong": "Trường TH&THCS Phúc Sen", "thanhphan": "TH Phúc Sen, THCS Phúc Sen", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "", "nguoi": "chị Hoài KT", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 135, "xa": "Xã Quảng Uyên", "cap": "Liên cấp", "truong": "Trường PT dân tộc bán trú TH&THCS Phi Hải", "thanhphan": "TH Phi Hải, THCS Phi Hải", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Trường mới hoàn toàn", "lydo": "Trường hoàn toàn mới, chưa gắn hợp đồng NCC", "am": "Đinh Phương Thảo", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 136, "xa": "Xã Quảng Uyên", "cap": "TH&THCS", "truong": "Trường TH&THCS Chí Thảo", "thanhphan": "TH Lạc Giao, TH Chí Thảo, THCS Chí Thảo", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Đinh Phương Thảo", "ngay": "", "nguoi": "C Hoài kt", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "Đổi tên usb cũ", "ghichu": ""}, {"stt": 137, "xa": "Xã Tổng Cọt", "cap": "Mầm non", "truong": "Sáp nhập MN Tổng Cọt", "thanhphan": "MN Tổng Cọt, MN Nội Thôn, MN Cải Viên", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (7 đầu mối giảm)", "am": "Hoàng Thị Huệ", "ngay": "17/08/2026", "nguoi": "C thiều", "chucvu": "Kt", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 138, "xa": "Xã Tổng Cọt", "cap": "Liên cấp", "truong": "Sáp nhập khối phổ thông Tổng Cọt", "thanhphan": "TH Tổng Cọt, TH Cải Viên, THCS Tổng Cọt, TH&THCS Nội Thôn, PTDTBT THCS Cải Viên, TH&THCS Vân An", "giam": 5, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (7 đầu mối giảm)", "am": "Lô Thị Ngọc Quyên", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 139, "xa": "Xã Cần Yên", "cap": "Mầm non", "truong": "Sáp nhập MN Cần Yên", "thanhphan": "MN Cần Yên, MN Cần Nông, MN Lương Thông", "giam": 2, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (7 đầu mối giảm)", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 140, "xa": "Xã Cần Yên", "cap": "Liên cấp", "truong": "Sáp nhập khối phổ thông Cần Yên", "thanhphan": "TH Lương Thông, TH Ngọc Sỹ, TH&THCS Vị Quang, TH&THCS Cần Yên, PTDTBT TH&THCS Cần Nông, PTDTBT THCS Lương Thông", "giam": 5, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 2 - Quy mô lớn", "lydo": "Xã có quy mô sáp nhập lớn (7 đầu mối giảm)", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 141, "xa": "Xã Thông Nông", "cap": "Mầm non", "truong": "Trường Mầm non Hồng Quân", "thanhphan": "MN Lương Can, MN Hồng Quân, MN Đa Thông", "giam": 2, "hinhthuc": "Sát nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 142, "xa": "Xã Thông Nông", "cap": "Liên cấp", "truong": "01 trường TH + 01 trường THCS (Thông Nông)", "thanhphan": "TH&THCS Thông Nông, TH&THCS Lương Can, TH&THCS Dẻ Rào", "giam": 1, "hinhthuc": "Sát nhập 03 trường thành 01 TH, 01 THCS", "uutien": "Ưu tiên 2 - Trường mới hoàn toàn", "lydo": "Trường hoàn toàn mới, chưa gắn hợp đồng NCC", "am": "Phan Mỹ Nương", "ngay": "18/08/2026", "nguoi": "Anh Huy", "chucvu": "Kế toán", "sdt": "886589428", "dasudung": "Có", "dichvu": "Chữ ký số", "ncc": "VNPT/VinaPhone", "ketqua": "Cần thời gian cân nhắc", "ghichu": ""}, {"stt": 143, "xa": "Xã Bạch Đằng", "cap": "THCS", "truong": "Trường THCS Bạch Đằng", "thanhphan": "TH Bạch Đằng, THCS Bạch Đằng", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 144, "xa": "Xã Bạch Đằng", "cap": "Mầm non", "truong": "Trường Mầm non Bạch Đằng", "thanhphan": "MN Bạch Đằng, MN Bình Dương", "giam": 1, "hinhthuc": "Sáp nhập", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 145, "xa": "Phường Nùng Trí Cao", "cap": "Mầm non", "truong": "Trường Mầm non 19-5 (hoặc MN Nùng Trí Cao)", "thanhphan": "MN Vĩnh Quang, MN 19-5, MN Sông Bằng", "giam": 2, "hinhthuc": "Điểm chính + 2 Phân hiệu", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Nguyễn Thị Thu", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 146, "xa": "Phường Nùng Trí Cao", "cap": "Liên cấp", "truong": "Trường liên cấp TH&THCS (Vĩnh Quang - Ngọc Xuân)", "thanhphan": "TH Vĩnh Quang, TH Ngọc Xuân, THCS Ngọc Xuân", "giam": 2, "hinhthuc": "Điểm chính + 2 Phân hiệu", "uutien": "Ưu tiên 2 - Trường mới hoàn toàn", "lydo": "Trường hoàn toàn mới, chưa gắn hợp đồng NCC", "am": "Nguyễn Thị Thu", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 147, "xa": "Phường Nùng Trí Cao", "cap": "Liên cấp", "truong": "Trường liên cấp TH&THCS (Thị Xuân)", "thanhphan": "TH Thị Xuân, THCS Thị Xuân", "giam": 1, "hinhthuc": "Điểm chính + Phân hiệu", "uutien": "Ưu tiên 2 - Trường mới hoàn toàn", "lydo": "Trường hoàn toàn mới, chưa gắn hợp đồng NCC", "am": "Nguyễn Thị Thu", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 148, "xa": "Khối GDTX", "cap": "GDNN-GDTX", "truong": "Trung tâm GDNN-GDTX Bảo Lạc", "thanhphan": "TT GDNN-GDTX Bảo Lạc, TT GDNN-GDTX Bảo Lâm, TT GDNN-GDTX Nguyên Bình", "giam": 2, "hinhthuc": "01 trung tâm + 02 phân hiệu", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Bế Thị Hoài", "ngay": "18/08/2026", "nguoi": "A thông", "chucvu": "hiệu phó", "sdt": "988012336", "dasudung": "Không", "dichvu": "SIM/Data di động", "ncc": "VNPT/VinaPhone", "ketqua": "Cần thời gian cân nhắc", "ghichu": ""}, {"stt": 149, "xa": "Khối GDTX", "cap": "GDNN-GDTX", "truong": "Trung tâm GDNN-GDTX Hòa An", "thanhphan": "TT GDNN-GDTX Hòa An, TT GDNN-GDTX Hà Quảng, TT GDNN-GDTX Thông Nông", "giam": 2, "hinhthuc": "01 trung tâm + 02 phân hiệu", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Phan Mỹ Nương", "ngay": "", "nguoi": "", "chucvu": "", "sdt": "", "dasudung": "", "dichvu": "", "ncc": "", "ketqua": "", "ghichu": ""}, {"stt": 150, "xa": "Khối GDTX", "cap": "GDNN-GDTX", "truong": "Trung tâm GDNN-GDTX Quảng Uyên", "thanhphan": "TT GDNN-GDTX Quảng Uyên, TT GDNN-GDTX Hạ Lang, TT GDNN-GDTX Trùng Khánh, TT GDNN-GDTX Thạch An", "giam": 3, "hinhthuc": "01 trung tâm + 03 phân hiệu", "uutien": "Ưu tiên 3 - Theo dõi định kỳ", "lydo": "Quy mô sáp nhập vừa/nhỏ", "am": "Đinh Phương Thảo", "ngay": "", "nguoi": "Chị Như kế toán", "chucvu": "Hiệu trưởng", "sdt": "866872268", "dasudung": "Có", "dichvu": "Chữ ký số", "ncc": "", "ketqua": "", "ghichu": ""}];
+
+
+function prioClass(u){
+  if(u.includes('1')) return 'prio1';
+  if(u.includes('2')) return 'prio2';
+  return 'prio3';
+}
+function prioShort(u){
+  if(u.includes('1')) return 'ƯT1 - KHẨN';
+  if(u.includes('2')) return 'ƯT2';
+  return 'ƯT3';
+}
+function contactStatus(r){
+  if(!r.am) return 'noam';
+  if(r.ngay && r.ngay.trim()) return 'done';
+  return 'pending';
+}
+function statusBadge(r){
+  const s = contactStatus(r);
+  if(s==='noam') return '<span class="status st-none">Chưa giao AM</span>';
+  if(s==='done') return '<span class="status st-done">Đã tiếp xúc</span>';
+  return '<span class="status st-pending">Chưa tiếp xúc</span>';
+}
+function ketquaClass(k){
+  if(!k) return 'st-none';
+  if(k.includes('Từ chối')) return 'st-danger';
+  if(k.includes('Đồng ý')) return 'st-done';
+  if(k.includes('đối thủ')) return 'st-danger';
+  return 'st-pending';
+}
+
+// populate filter options
+const prioSet = [...new Set(RAW.map(r=>r.uutien))].sort();
+const amSet = [...new Set(RAW.map(r=>r.am).filter(x=>x))].sort();
+const fPrio = document.getElementById('fPrio');
+prioSet.forEach(p=>{ const o=document.createElement('option'); o.value=p; o.textContent=p; fPrio.appendChild(o); });
+const fAM = document.getElementById('fAM');
+amSet.forEach(a=>{ const o=document.createElement('option'); o.value=a; o.textContent=a; fAM.appendChild(o); });
+
+function computeKPI(){
+  const total = RAW.length;
+  const withAM = RAW.filter(r=>r.am).length;
+  const done = RAW.filter(r=>contactStatus(r)==='done').length;
+  const pending = RAW.filter(r=>contactStatus(r)==='pending').length;
+  const noam = RAW.filter(r=>contactStatus(r)==='noam').length;
+  const p1 = RAW.filter(r=>r.uutien.includes('1'));
+  const p1done = p1.filter(r=>contactStatus(r)==='done').length;
+  const danger = RAW.filter(r=>r.ketqua && (r.ketqua.includes('Từ chối')||r.ketqua.includes('đối thủ'))).length;
+
+  const kpiRow = document.getElementById('kpiRow');
+  kpiRow.innerHTML = `
+    <div class="kpi dark"><div class="num">${total}</div><div class="lbl">Tổng số trường sau sắp xếp</div><div class="sub2">150 nhóm / 221 đầu mối giảm</div></div>
+    <div class="kpi blue"><div class="num">${withAM}</div><div class="lbl">Đã giao AM phụ trách</div><div class="sub2">${noam} trường chưa giao</div></div>
+    <div class="kpi green"><div class="num">${done}</div><div class="lbl">Đã tiếp xúc</div><div class="sub2">${(done/total*100).toFixed(0)}% tổng số trường</div></div>
+    <div class="kpi orange"><div class="num">${pending}</div><div class="lbl">Đã giao nhưng chưa tiếp xúc</div><div class="sub2">Cần bám đuổi tiến độ</div></div>
+    <div class="kpi" style="border-top-color:var(--red)"><div class="num">${p1done}/${p1.length}</div><div class="lbl">Ưu tiên 1 - KHẨN đã tiếp xúc</div><div class="sub2">${p1.length-p1done} trường khẩn còn lại</div></div>
+    <div class="kpi" style="border-top-color:#c40400"><div class="num">${danger}</div><div class="lbl">Rủi ro cạnh tranh</div><div class="sub2">Từ chối / đang dùng đối thủ</div></div>
+  `;
+}
+
+function computeAlerts(){
+  const list = document.getElementById('alertList');
+  const items = [];
+
+  const p1pending = RAW.filter(r=>r.uutien.includes('1') && contactStatus(r)!=='done');
+  if(p1pending.length){
+    items.push({type:'urgent', text:`${p1pending.length} trường Ưu tiên 1 - KHẨN chưa hoàn thành tiếp xúc: ${p1pending.slice(0,6).map(r=>r.truong).join('; ')}${p1pending.length>6?'...':''}. Cần bám đuổi trong tuần.`});
+  }
+
+  const noam = RAW.filter(r=>!r.am);
+  if(noam.length){
+    items.push({type:'warn', text:`${noam.length} trường có xã chưa nằm trong Danh sách phân giao địa bàn hiện hành: ${noam.map(r=>r.truong+' ('+r.xa+')').join('; ')}. Cần Anh Thắng xác nhận AM phụ trách thủ công.`});
+  }
+
+  const tuchoi = RAW.filter(r=>r.ketqua && r.ketqua.includes('Từ chối'));
+  if(tuchoi.length){
+    items.push({type:'urgent', text:`${tuchoi.length} trường đã từ chối: ${tuchoi.map(r=>r.truong).join('; ')}. Cần phương án chăm sóc lại hoặc cấp trên hỗ trợ tiếp cận.`});
+  }
+
+  const doithu = RAW.filter(r=>r.ketqua && r.ketqua.includes('đối thủ'));
+  if(doithu.length){
+    items.push({type:'warn', text:`${doithu.length} trường đang dùng đối thủ (VNPT) và cần chăm sóc lại: ${doithu.map(r=>r.truong).join('; ')}.`});
+  }
+
+  const canNhac = RAW.filter(r=>r.ketqua && r.ketqua.includes('Cần thời gian cân nhắc'));
+  if(canNhac.length){
+    items.push({type:'info', text:`${canNhac.length} trường đang ở trạng thái "cần thời gian cân nhắc" — cần lịch tái tiếp xúc theo dõi (thường do chưa có con dấu/quyết định hiệu trưởng mới).`});
+  }
+
+  list.innerHTML = items.map(it=>`
+    <div class="alert-item ${it.type==='urgent'?'':it.type}">
+      <span class="badge">${it.type==='urgent'?'KHẨN':it.type==='warn'?'CHÚ Ý':'THEO DÕI'}</span>
+      <div>${it.text}</div>
+    </div>
+  `).join('') || '<div style="color:#6b7278;font-size:13px;">Không phát sinh vấn đề nổi bật.</div>';
+}
+
+function kqTone(k){
+  if(!k) return '';
+  if(k.includes('Từ chối') || k.includes('đối thủ')) return 'kq-danger';
+  if(k.includes('Đồng ý')) return 'kq-ok';
+  return 'kq-warn';
+}
+
+let pieChartInst=null;
+function renderPie(){
+  const total = RAW.length;
+  const done = RAW.filter(r=>contactStatus(r)==='done').length;
+  const pending = total - done;
+  const p1 = RAW.filter(r=>r.uutien.includes('1'));
+  const p1done = p1.filter(r=>contactStatus(r)==='done').length;
+
+  const ctx = document.getElementById('chartPie').getContext('2d');
+  if(pieChartInst) pieChartInst.destroy();
+  pieChartInst = new Chart(ctx, {
+    type:'pie',
+    data:{
+      labels:[`Đã tiếp xúc (${done})`, `Chưa tiếp xúc (${pending})`],
+      datasets:[{
+        data:[done, pending],
+        backgroundColor:['#1BA94C','#FF8A00'],
+        borderColor:'#fff', borderWidth:2
+      }]
+    },
+    options:{
+      responsive:false,
+      maintainAspectRatio:true,
+      plugins:{ legend:{ display:false } }
+    }
+  });
+
+  const pct = (n)=> total? ((n/total)*100).toFixed(0) : 0;
+  const rows = [
+    {label:'Đã tiếp xúc', color:'#1BA94C', n:done},
+    {label:'Chưa tiếp xúc', color:'#FF8A00', n:pending},
+  ];
+  let html = `<thead><tr>
+      <th style="text-align:left;padding:7px 10px;background:var(--dark);color:#fff;border-radius:6px 0 0 6px;">Trạng thái</th>
+      <th style="text-align:right;padding:7px 10px;background:var(--dark);color:#fff;">Số trường</th>
+      <th style="text-align:right;padding:7px 10px;background:var(--dark);color:#fff;border-radius:0 6px 6px 0;">Tỷ lệ</th>
+    </tr></thead><tbody>`;
+  rows.forEach(r=>{
+    html += `<tr style="border-bottom:1px solid #eef0f1;">
+      <td style="padding:6px 10px;"><span style="display:inline-block;width:9px;height:9px;border-radius:50%;background:${r.color};margin-right:7px;"></span>${r.label}</td>
+      <td style="padding:6px 10px;text-align:right;font-weight:700;">${r.n}</td>
+      <td style="padding:6px 10px;text-align:right;color:#6b7278;">${pct(r.n)}%</td>
+    </tr>`;
+  });
+  html += `<tr style="border-top:2px solid var(--dark);">
+      <td style="padding:6px 10px;font-weight:800;">Tổng cộng</td>
+      <td style="padding:6px 10px;text-align:right;font-weight:800;">${total}</td>
+      <td style="padding:6px 10px;text-align:right;font-weight:800;">100%</td>
+    </tr>`;
+  html += `<tr><td colspan="3" style="padding:8px 10px 2px;color:#6b7278;font-size:12px;border-top:1px dashed #e1e4e6;">Trong đó Ưu tiên 1 - KHẨN: <b>${p1done}/${p1.length}</b> đã tiếp xúc (${p1.length? Math.round(p1done/p1.length*100):0}%)</td></tr>`;
+  document.getElementById('pieSummaryTable').innerHTML = html;
+}
+
+function computeCharts(){
+  const amGrid = document.getElementById('amGrid');
+  const amList = [...new Set(RAW.map(r=>r.am).filter(x=>x))].sort();
+
+  const blocks = [];
+
+  amList.forEach(am=>{
+    const rows = RAW.filter(r=>r.am===am);
+    const total = rows.length;
+    const done = rows.filter(r=>contactStatus(r)==='done').length;
+    const pending = total - done;
+    const p1 = rows.filter(r=>r.uutien.includes('1')).length;
+    const p1done = rows.filter(r=>r.uutien.includes('1') && contactStatus(r)==='done').length;
+    const pct = total? Math.round(done/total*100) : 0;
+
+    // Aggregate kết quả tiếp xúc
+    const kqAgg = {};
+    rows.forEach(r=>{
+      if(r.ketqua && r.ketqua.trim()){
+        kqAgg[r.ketqua] = (kqAgg[r.ketqua]||0)+1;
+      }
+    });
+    const noResult = rows.filter(r=>contactStatus(r)==='done' && (!r.ketqua || !r.ketqua.trim())).length;
+
+    const kqRows = Object.entries(kqAgg).sort((a,b)=>b[1]-a[1]).map(([k,v])=>
+      `<div class="kq-row"><span class="${kqTone(k)}">${k}</span><span>${v}</span></div>`
+    ).join('') || '<div class="kq-row" style="color:#9aa0a4;">Chưa ghi nhận kết quả</div>';
+
+    blocks.push(`
+      <div class="am-card">
+        <div class="am-head">
+          <div class="am-name">${am}</div>
+          <div class="am-total">${total} trường được giao</div>
+        </div>
+        <div class="progress-bar">
+          <span style="width:${pct}%; background:#1BA94C;"></span>
+          <span style="width:${100-pct}%; background:#FF8A00;"></span>
+        </div>
+        <div class="am-metrics">
+          <span class="am-metric done">Đã TX: ${done}/${total} (${pct}%)</span>
+          <span class="am-metric pending">Chưa TX: ${pending}</span>
+          ${p1? `<span class="am-metric p1">ƯT1-KHẨN: ${p1done}/${p1}</span>` : ''}
+        </div>
+        <div class="am-results">${kqRows}</div>
+      </div>
+    `);
+  });
+
+  // Nhóm chưa giao AM
+  const noamRows = RAW.filter(r=>!r.am);
+  if(noamRows.length){
+    blocks.push(`
+      <div class="am-card noam">
+        <div class="am-head">
+          <div class="am-name" style="color:var(--red);">⚠ Chưa xác định địa bàn / AM</div>
+          <div class="am-total">${noamRows.length} trường</div>
+        </div>
+        <div class="am-results">
+          ${noamRows.map(r=>`<div class="kq-row"><span>${r.truong} <span style="color:#9aa0a4;">(${r.xa})</span></span><span class="prio ${prioClass(r.uutien)}" style="font-size:10px;">${prioShort(r.uutien)}</span></div>`).join('')}
+        </div>
+      </div>
+    `);
+  }
+
+  amGrid.innerHTML = blocks.join('');
+}
+
+let selectedSchoolStt = null;
+const SHARED_API_URL = 'https://script.google.com/macros/s/AKfycbzp6C84E5g8PZRtVRzE7PW0a8SwNcZc_fHOKDfa05s2jZJN3iDx7pC7keeiAvxr2xA-/exec';
+
+function apiReady(){
+  return SHARED_API_URL && !SHARED_API_URL.includes('https://script.google.com/macros/s/AKfycbzp6C84E5g8PZRtVRzE7PW0a8SwNcZc_fHOKDfa05s2jZJN3iDx7pC7keeiAvxr2xA-/exec');
+}
+
+function normKeyPart(v){
+  return String(v || '').trim().toLowerCase().replace(/\s+/g,' ');
+}
+
+function sharedKey(xa, truong){
+  return normKeyPart(xa) + '||' + normKeyPart(truong);
+}
+
+function jsonpRequest(params){
+  return new Promise((resolve, reject)=>{
+    if(!apiReady()) return reject(new Error('Chưa cấu hình Apps Script Web App URL'));
+    const cb = '__cbg_jsonp_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const script = document.createElement('script');
+    const timeout = setTimeout(()=>{
+      cleanup();
+      reject(new Error('Hết thời gian chờ Google Sheet'));
+    }, 12000);
+
+    function cleanup(){
+      clearTimeout(timeout);
+      try{ delete window[cb]; }catch(_){ window[cb] = undefined; }
+      if(script.parentNode) script.parentNode.removeChild(script);
+    }
+
+    window[cb] = function(payload){
+      cleanup();
+      if(payload && payload.ok === true) resolve(payload);
+      else reject(new Error(payload && payload.error ? payload.error : 'Google Sheet trả về lỗi'));
+    };
+
+    const qs = new URLSearchParams({...params, callback: cb, t: Date.now().toString()});
+    script.src = SHARED_API_URL + (SHARED_API_URL.includes('?') ? '&' : '?') + qs.toString();
+    script.onerror = ()=>{
+      cleanup();
+      reject(new Error('Không kết nối được Google Apps Script'));
+    };
+    document.head.appendChild(script);
+  });
+}
+
+function applySharedRecords(records){
+  if(!Array.isArray(records)) return;
+  const map = new Map(records.map(x=>[sharedKey(x.xa, x.truong), x]));
+  RAW.forEach(r=>{
+    const x = map.get(sharedKey(r.xa, r.truong));
+    if(!x) return;
+    ['am','ketqua','ngay','nguoi','sdt','dasudung','ncc','ghichu'].forEach(k=>{
+      if(Object.prototype.hasOwnProperty.call(x,k) && x[k] !== null && x[k] !== undefined){
+        r[k] = String(x[k]);
+      }
+    });
+    if(x.uutien) r.uutien = String(x.uutien);
+  });
+}
+
+async function loadSharedData(){
+  if(!apiReady()) return;
+  try{
+    const payload = await jsonpRequest({action:'list'});
+    applySharedRecords(payload.data || []);
+    computeKPI();
+    computeAlerts();
+    computeCharts();
+    renderTable();
+  }catch(err){
+    console.error('Lỗi tải dữ liệu dùng chung:', err);
+    const msg = document.getElementById('saveMsg');
+    if(msg){
+      msg.textContent = 'Không tải được dữ liệu dùng chung: ' + err.message;
+      msg.className = 'save-msg err';
+    }
+  }
+}
+
+function submitSharedSave(payload){
+  return new Promise((resolve, reject)=>{
+    if(!apiReady()) return reject(new Error('Chưa cấu hình Apps Script Web App URL'));
+
+    const iframeName = 'save_iframe_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+    const iframe = document.createElement('iframe');
+    iframe.name = iframeName;
+    iframe.style.display = 'none';
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = SHARED_API_URL;
+    form.target = iframeName;
+    form.style.display = 'none';
+
+    Object.entries(payload).forEach(([k,v])=>{
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = k;
+      input.value = String(v ?? '');
+      form.appendChild(input);
+    });
+
+    let submitted = false;
+    const timer = setTimeout(()=>{
+      cleanup();
+      resolve(); // Request was submitted; confirmation is done by JSONP polling.
+    }, 1600);
+
+    function cleanup(){
+      clearTimeout(timer);
+      setTimeout(()=>{
+        if(form.parentNode) form.parentNode.removeChild(form);
+        if(iframe.parentNode) iframe.parentNode.removeChild(iframe);
+      }, 500);
+    }
+
+    iframe.onload = ()=>{
+      if(submitted){
+        cleanup();
+        resolve();
+      }
+    };
+
+    document.body.appendChild(iframe);
+    document.body.appendChild(form);
+    submitted = true;
+    try{
+      form.submit();
+    }catch(err){
+      cleanup();
+      reject(err);
+    }
+  });
+}
+
+function sameSavedRecord(rec, draft){
+  const eq = (a,b)=>String(a ?? '').trim() === String(b ?? '').trim();
+  return rec &&
+    eq(rec.am, draft.am) &&
+    eq(rec.ketqua, draft.ketqua) &&
+    eq(rec.ngay, draft.ngay) &&
+    eq(rec.nguoi, draft.nguoi) &&
+    eq(rec.sdt, draft.sdt) &&
+    eq(rec.dasudung, draft.dasudung) &&
+    eq(rec.ncc, draft.ncc) &&
+    eq(rec.ghichu, draft.ghichu);
+}
+
+async function confirmSharedSave(row, draft){
+  let lastErr = null;
+  for(let i=0;i<8;i++){
+    await new Promise(r=>setTimeout(r, 650));
+    try{
+      const p = await jsonpRequest({action:'get', xa:row.xa, truong:row.truong});
+      if(sameSavedRecord(p.record, draft)) return p.record;
+    }catch(err){
+      lastErr = err;
+    }
+  }
+  throw lastErr || new Error('Đã gửi yêu cầu nhưng chưa xác nhận được dữ liệu trên Google Sheet');
+}
+
+function clearValidationUI(){
+  document.querySelectorAll('.field-invalid').forEach(el=>el.classList.remove('field-invalid'));
+  const msg = document.getElementById('saveMsg');
+  if(msg){ msg.textContent=''; msg.className='save-msg'; }
+}
+
+function markInvalid(id){
+  const el = document.getElementById(id);
+  if(el) el.classList.add('field-invalid');
+}
+
+function getDraftFromForm(){
+  return {
+    am: (document.getElementById('fAM').value || '').trim(),
+    ketqua: (document.getElementById('fKetqua').value || '').trim(),
+    ngay: inputToDate(document.getElementById('fNgay').value || ''),
+    nguoi: (document.getElementById('fNguoi').value || '').trim(),
+    sdt: (document.getElementById('fSdt').value || '').trim(),
+    dasudung: (document.getElementById('fDasudung').value || '').trim(),
+    ncc: (document.getElementById('fNcc').value || '').trim(),
+    ghichu: (document.getElementById('fGhichu').value || '').trim()
+  };
+}
+
+const ORIGINAL_AM = new Map(RAW.map(r=>[r.stt, r.am || '']));
+const AM_STORAGE_KEY = 'cbg_school_am_overrides_v1';
+const KQ_STORAGE_KEY = 'cbg_school_ketqua_overrides_v1';
+const CONTACT_STORAGE_KEY = 'cbg_school_contact_overrides_v1';
+
+function loadSavedAMAssignments(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(AM_STORAGE_KEY) || '{}');
+    RAW.forEach(r=>{
+      if(Object.prototype.hasOwnProperty.call(saved, String(r.stt))){
+        r.am = saved[String(r.stt)] || '';
+      }
+    });
+  }catch(e){
+    console.warn('Không đọc được dữ liệu AM đã lưu cục bộ', e);
+  }
+}
+
+function saveAMAssignment(stt, am){
+  try{
+    const saved = JSON.parse(localStorage.getItem(AM_STORAGE_KEY) || '{}');
+    saved[String(stt)] = am || '';
+    localStorage.setItem(AM_STORAGE_KEY, JSON.stringify(saved));
+  }catch(e){
+    console.warn('Không lưu được dữ liệu AM cục bộ', e);
+  }
+}
+
+function loadSavedKetQua(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(KQ_STORAGE_KEY) || '{}');
+    RAW.forEach(r=>{
+      if(Object.prototype.hasOwnProperty.call(saved, String(r.stt))){
+        r.ketqua = saved[String(r.stt)] || '';
+      }
+    });
+  }catch(e){
+    console.warn('Không đọc được kết quả tiếp xúc đã lưu cục bộ', e);
+  }
+}
+
+function saveKetQua(stt, ketqua){
+  try{
+    const saved = JSON.parse(localStorage.getItem(KQ_STORAGE_KEY) || '{}');
+    saved[String(stt)] = ketqua || '';
+    localStorage.setItem(KQ_STORAGE_KEY, JSON.stringify(saved));
+  }catch(e){
+    console.warn('Không lưu được kết quả tiếp xúc cục bộ', e);
+  }
+}
+
+function loadSavedContactFields(){
+  try{
+    const saved = JSON.parse(localStorage.getItem(CONTACT_STORAGE_KEY) || '{}');
+    RAW.forEach(r=>{
+      const v = saved[String(r.stt)];
+      if(v && typeof v === 'object'){
+        ['ngay','nguoi','sdt','dasudung','ncc','ghichu'].forEach(k=>{
+          if(Object.prototype.hasOwnProperty.call(v, k)) r[k] = v[k] || '';
+        });
+      }
+    });
+  }catch(e){
+    console.warn('Không đọc được dữ liệu tiếp xúc đã lưu cục bộ', e);
+  }
+}
+
+function saveContactFields(row){
+  try{
+    const saved = JSON.parse(localStorage.getItem(CONTACT_STORAGE_KEY) || '{}');
+    saved[String(row.stt)] = {
+      ngay: row.ngay || '',
+      nguoi: row.nguoi || '',
+      sdt: row.sdt || '',
+      dasudung: row.dasudung || '',
+      ncc: row.ncc || '',
+      ghichu: row.ghichu || ''
+    };
+    localStorage.setItem(CONTACT_STORAGE_KEY, JSON.stringify(saved));
+  }catch(e){
+    console.warn('Không lưu được dữ liệu tiếp xúc cục bộ', e);
+  }
+}
+
+function dateToInput(v){
+  const s = String(v || '').trim();
+  if(!s) return '';
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s)) return s;
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(!m) return '';
+  return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+}
+
+function inputToDate(v){
+  const s = String(v || '').trim();
+  if(!s) return '';
+  const m = s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : s;
+}
+
+function escapeHTML(v){
+  return String(v || '')
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;')
+    .replace(/'/g,'&#039;');
+}
+
+function setContactFieldsEnabled(enabled){
+  // Các trường luôn cho phép nhập thủ công.
+  ['fNgay','fNguoi','fSdt','fDasudung','fNcc','fGhichu'].forEach(id=>{
+    document.getElementById(id).disabled = false;
+  });
+}
+
+function fillContactFields(row){
+  document.getElementById('fNgay').value = dateToInput(row.ngay);
+  document.getElementById('fNguoi').value = row.nguoi || '';
+  document.getElementById('fSdt').value = row.sdt || '';
+  document.getElementById('fDasudung').value = row.dasudung || '';
+  document.getElementById('fNcc').value = row.ncc || '';
+  document.getElementById('fGhichu').value = row.ghichu || '';
+}
+
+
+
+
+
+function normalizeText(v){
+  return String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g,'').toLowerCase().trim();
+}
+
+function renderSchoolOptions(query=''){
+  const q = normalizeText(query);
+  const options = RAW.filter(r=>{
+    if(!q) return true;
+    return normalizeText(r.xa).includes(q) || normalizeText(r.truong).includes(q);
+  });
+  const box = document.getElementById('schoolOptions');
+  box.innerHTML = options.length ? options.map(r=>`
+    <button type="button" class="school-option" data-school-stt="${r.stt}">
+      <div class="school-name">${r.truong}</div>
+      <div class="school-meta">${r.xa} · ${prioShort(r.uutien)}${ORIGINAL_AM.get(r.stt)?' · AM dữ liệu: '+ORIGINAL_AM.get(r.stt):''}</div>
+    </button>
+  `).join('') : '<div class="school-empty">Không tìm thấy trường phù hợp.</div>';
+}
+
+function openSchoolDropdown(){
+  const dd = document.getElementById('schoolDropdown');
+  dd.classList.add('open');
+  const lookup = document.getElementById('schoolLookup');
+  lookup.value='';
+  renderSchoolOptions('');
+  setTimeout(()=>lookup.focus(),0);
+}
+
+function closeSchoolDropdown(){
+  document.getElementById('schoolDropdown').classList.remove('open');
+}
+
+function selectSchool(stt){
+  clearValidationUI();
+  const row = RAW.find(r=>r.stt===stt);
+  if(!row) return;
+  selectedSchoolStt = stt;
+
+  const field = document.getElementById('fSearch');
+  field.value = `${row.xa} — ${row.truong}`;
+
+  // Mức ưu tiên tự động lấy theo trường đã chọn.
+  const prioField = document.getElementById('fPrio');
+  prioField.disabled = false;
+  prioField.value = row.uutien;
+  prioField.disabled = true;
+
+  // AM không lấy mặc định theo danh sách: người dùng chủ động chọn lại.
+  document.getElementById('fAM').value = '';
+  document.getElementById('fStatus').value = '';
+  document.getElementById('fKetqua').value = row.ketqua || '';
+  setContactFieldsEnabled(true);
+  fillContactFields(row);
+
+  closeSchoolDropdown();
+  renderTable();
+  field.scrollIntoView({behavior:'smooth', block:'center'});
+}
+
+function renderTable(){
+  const search = document.getElementById('fSearch').value.trim().toLowerCase();
+  const prio = document.getElementById('fPrio').value;
+  const am = document.getElementById('fAM').value;
+  const status = document.getElementById('fStatus').value;
+  const kq = document.getElementById('fKetqua').value;
+
+  let rows;
+  if(selectedSchoolStt !== null){
+    // Khi đã chọn trường, giữ đúng trường đó trên màn hình; AM là ô phân công, không còn là bộ lọc.
+    rows = RAW.filter(r=>r.stt===selectedSchoolStt);
+  }else{
+    rows = RAW.filter(r=>{
+      if(search && !(r.truong.toLowerCase().includes(search) || r.xa.toLowerCase().includes(search))) return false;
+      if(prio && r.uutien !== prio) return false;
+      if(am && r.am !== am) return false;
+      if(status && contactStatus(r) !== status) return false;
+      if(kq && !normalizeText(r.ketqua).includes(normalizeText(kq))) return false;
+      return true;
+    });
+  }
+
+  document.getElementById('countPill').textContent = rows.length + ' trường';
+
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = rows.map(r=>`
+    <tr>
+      <td>${r.stt}</td>
+      <td>${r.xa}</td>
+      <td>${r.cap}</td>
+      <td><button type="button" class="school-pick" data-school-stt="${r.stt}" title="Chọn trường này">${r.truong}</button><div style="color:#9aa0a4;font-size:11px;">${r.thanhphan}</div></td>
+      <td style="text-align:center;">${r.giam}</td>
+      <td><span class="prio ${prioClass(r.uutien)}">${prioShort(r.uutien)}</span><br>${statusBadge(r)}</td>
+      <td>${selectedSchoolStt===r.stt && !document.getElementById('fAM').value
+        ? `<span style="color:var(--orange);font-weight:800;">Chọn AM ở ô phía trên</span>${ORIGINAL_AM.get(r.stt)?`<div style="color:#9aa0a4;font-size:10.5px;">Dữ liệu gốc: ${ORIGINAL_AM.get(r.stt)}</div>`:''}`
+        : `${r.am || '<span style="color:#c0403c;font-weight:700;">Chưa xác định</span>'}${ORIGINAL_AM.get(r.stt) && r.am!==ORIGINAL_AM.get(r.stt)?`<div style="color:#0077C8;font-size:10.5px;">Đã đổi từ: ${ORIGINAL_AM.get(r.stt)}</div>`:''}`}</td>
+      <td>${escapeHTML(r.ngay||'')}</td>
+      <td>${escapeHTML(r.nguoi||'')} ${r.chucvu?('<div style="color:#9aa0a4;font-size:11px;">'+escapeHTML(r.chucvu)+'</div>'):''}</td>
+      <td>${escapeHTML(r.sdt||'')}</td>
+      <td>${escapeHTML(r.dasudung||'')} ${r.dichvu?('<div style="color:#9aa0a4;font-size:11px;">'+escapeHTML(r.dichvu)+'</div>'):''}</td>
+      <td>${escapeHTML(r.ncc||'')}</td>
+      <td>${r.ketqua?('<span class="status '+ketquaClass(r.ketqua)+'">'+escapeHTML(r.ketqua)+'</span>'):''}</td>
+      <td style="max-width:220px;">${escapeHTML(r.ghichu||'')}</td>
+    </tr>
+  `).join('');
+}
+
+function resetFilters(){
+  clearValidationUI();
+  selectedSchoolStt = null;
+  document.getElementById('fSearch').value='';
+  const prioField = document.getElementById('fPrio');
+  prioField.disabled=false;
+  prioField.value='';
+  prioField.disabled=true;
+  document.getElementById('fAM').value='';
+  document.getElementById('fStatus').value='';
+  document.getElementById('fKetqua').value='';
+  document.getElementById('fNgay').value='';
+  document.getElementById('fNguoi').value='';
+  document.getElementById('fSdt').value='';
+  document.getElementById('fDasudung').value='';
+  document.getElementById('fNcc').value='';
+  document.getElementById('fGhichu').value='';
+  setContactFieldsEnabled(true);
+  closeSchoolDropdown();
+  renderTable();
+}
+
+document.getElementById('tbody').addEventListener('click', (event)=>{
+  const btn = event.target.closest('.school-pick');
+  if(!btn) return;
+  selectSchool(Number(btn.dataset.schoolStt));
+});
+
+document.getElementById('fSearch').addEventListener('click', (event)=>{
+  event.stopPropagation();
+  openSchoolDropdown();
+});
+
+document.getElementById('schoolLookup').addEventListener('input', (event)=>{
+  renderSchoolOptions(event.target.value);
+});
+
+document.getElementById('schoolOptions').addEventListener('click', (event)=>{
+  const btn = event.target.closest('.school-option');
+  if(!btn) return;
+  selectSchool(Number(btn.dataset.schoolStt));
+});
+
+document.getElementById('schoolDropdown').addEventListener('click', event=>event.stopPropagation());
+document.addEventListener('click', closeSchoolDropdown);
+
+// CHẾ ĐỘ NHẬP DỮ LIỆU:
+ // Tất cả thay đổi chỉ là bản nháp trên form.
+ // Dữ liệu RAW/localStorage chỉ được ghi khi người dùng bấm LƯU.
+
+document.getElementById('fAM').addEventListener('change', clearValidationUI);
+document.getElementById('fStatus').addEventListener('change', ()=>{
+  clearValidationUI();
+  if(selectedSchoolStt === null) renderTable();
+});
+
+const fKetquaInput = document.getElementById('fKetqua');
+fKetquaInput.addEventListener('input', ()=>{
+  clearValidationUI();
+  if(selectedSchoolStt === null) renderTable();
+});
+
+document.getElementById('fNgay').addEventListener('change', clearValidationUI);
+document.getElementById('fNguoi').addEventListener('input', clearValidationUI);
+document.getElementById('fSdt').addEventListener('input', (event)=>{
+  event.target.value = event.target.value.replace(/[^0-9+ ]/g,'');
+  clearValidationUI();
+});
+document.getElementById('fDasudung').addEventListener('input', clearValidationUI);
+document.getElementById('fNcc').addEventListener('input', clearValidationUI);
+document.getElementById('fGhichu').addEventListener('input', clearValidationUI);
+
+async function validateAndSave(){
+  clearValidationUI();
+  const msg = document.getElementById('saveMsg');
+  const btn = document.getElementById('saveBtn');
+
+  if(!apiReady()){
+    msg.textContent = 'Chưa cấu hình đường dẫn Google Apps Script.';
+    msg.className = 'save-msg err';
+    alert('Chưa cấu hình Google Apps Script Web App URL.');
+    return;
+  }
+
+  if(selectedSchoolStt === null){
+    markInvalid('fSearch');
+    msg.textContent = 'CẢNH BÁO: Chưa chọn Tên xã/trường.';
+    msg.className = 'save-msg err';
+    alert('Chưa thể lưu: Anh/chị chưa chọn Tên xã/trường.');
+    return;
+  }
+
+  const row = RAW.find(r=>r.stt===selectedSchoolStt);
+  if(!row){
+    msg.textContent = 'CẢNH BÁO: Không tìm thấy trường đã chọn.';
+    msg.className = 'save-msg err';
+    return;
+  }
+
+  const draft = getDraftFromForm();
+  const priority = (document.getElementById('fPrio').value || '').trim();
+  const schoolName = (document.getElementById('fSearch').value || '').trim();
+
+  const required = [
+    ['fSearch', schoolName, 'Tên xã/trường'],
+    ['fPrio', priority, 'Mức ưu tiên'],
+    ['fAM', draft.am, 'AM phụ trách'],
+    ['fKetqua', draft.ketqua, 'Kết quả tiếp xúc'],
+    ['fNgay', draft.ngay, 'Ngày tiếp xúc'],
+    ['fNguoi', draft.nguoi, 'Người đại diện'],
+    ['fSdt', draft.sdt, 'SĐT'],
+    ['fDasudung', draft.dasudung, 'Dùng DV Viettel'],
+    ['fNcc', draft.ncc, 'Đối thủ']
+  ];
+
+  const missing = required.filter(item=>!item[1]);
+  if(missing.length){
+    missing.forEach(item=>markInvalid(item[0]));
+    msg.textContent = 'CẢNH BÁO: Chưa nhập đủ: ' + missing.map(x=>x[2]).join(', ') + '.';
+    msg.className = 'save-msg err';
+    alert(`Chưa thể lưu. Vui lòng nhập đủ các trường bắt buộc:
+- ${missing.map(x=>x[2]).join('\n- ')}
+
+Ghi chú được phép để trống.`);
+    return;
+  }
+
+  const payload = {
+    action:'save',
+    xa: row.xa || '',
+    truong: row.truong || '',
+    uutien: priority,
+    am: draft.am,
+    ketqua: draft.ketqua,
+    ngay: draft.ngay,
+    nguoi: draft.nguoi,
+    sdt: draft.sdt,
+    dasudung: draft.dasudung,
+    ncc: draft.ncc,
+    ghichu: draft.ghichu
+  };
+
+  btn.disabled = true;
+  const oldText = btn.textContent;
+  btn.textContent = 'ĐANG LƯU...';
+  msg.textContent = 'Đang ghi vào file Google Sheet dùng chung...';
+  msg.className = 'save-msg';
+
+  try{
+    await submitSharedSave(payload);
+    const saved = await confirmSharedSave(row, draft);
+
+    // Chỉ cập nhật UI sau khi đọc lại từ Google Sheet và xác nhận dữ liệu đã ghi.
+    row.am = saved.am || '';
+    row.ketqua = saved.ketqua || '';
+    row.ngay = saved.ngay || '';
+    row.nguoi = saved.nguoi || '';
+    row.sdt = saved.sdt || '';
+    row.dasudung = saved.dasudung || '';
+    row.ncc = saved.ncc || '';
+    row.ghichu = saved.ghichu || '';
+
+    computeKPI();
+    computeAlerts();
+    computeCharts();
+    renderTable();
+
+    msg.textContent = 'ĐÃ LƯU THÀNH CÔNG VÀO GOOGLE SHEET.';
+    msg.className = 'save-msg ok';
+  }catch(err){
+    console.error(err);
+    msg.textContent = 'LƯU THẤT BẠI: ' + err.message;
+    msg.className = 'save-msg err';
+    alert(`Không xác nhận được dữ liệu trên Google Sheet.
+${err.message}`);
+  }finally{
+    btn.disabled = false;
+    btn.textContent = oldText;
+  }
+}
+
+document.getElementById('saveBtn').addEventListener('click', validateAndSave);
+
+computeKPI();
+computeAlerts();
+renderPie();
+computeCharts();
+renderSchoolOptions();
+renderTable();
+loadSharedData();
+</script>
+</body>
+</html>
