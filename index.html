@@ -1,35 +1,360 @@
-<!doctype html><html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Tiếp xúc trường học - Viettel Cao Bằng</title><style>
-:root{--r:#e80500;--d:#42494d;--g:#1ba94c;--o:#ff8a00;--b:#f4f5f6}*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:var(--b);color:var(--d)}header{background:var(--r);color:white;padding:16px 20px;display:flex;justify-content:space-between;gap:16px;align-items:center}header h1{font-size:18px;margin:0}.brand{font-weight:800;border:1px solid #fff;border-radius:5px;padding:4px 8px}.wrap{max-width:1180px;margin:auto;padding:18px}.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}.kpi,.card{background:white;border-radius:12px;box-shadow:0 2px 7px #0001}.kpi{padding:14px;border-top:4px solid var(--r)}.num{font-size:25px;font-weight:800}.lbl{font-size:12px;color:#73797d;margin-top:3px}.card{padding:16px;margin-bottom:14px}.card h3{margin:0 0 12px;font-size:15px}.form{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.fg{display:flex;flex-direction:column;gap:4px}.fg.wide{grid-column:span 2}label{font-size:11px;font-weight:800;text-transform:uppercase;color:#6b7278}input{width:100%;padding:9px 10px;border:1.5px solid #dfe3e6;border-radius:8px;font-size:14px;background:#fff}input[readonly]{background:#f1f2f3}.invalid{border-color:var(--r)!important;background:#fff4f3!important}.actions{display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap}button{border:0;border-radius:8px;padding:10px 18px;font-weight:800;cursor:pointer}.save{background:var(--r);color:#fff}.refresh{background:var(--d);color:#fff}.msg{font-size:13px;font-weight:700}.ok{color:var(--g)}.err{color:var(--r)}.amgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}.am{border:1px solid #e5e7e9;border-radius:9px;padding:10px}.am b{display:block;margin-bottom:6px}.bar{height:7px;background:#eee;border-radius:6px;overflow:hidden}.bar span{display:block;height:100%;background:var(--g)}.small{font-size:12px;color:#73797d;margin-top:5px}.searchbox{position:relative}.results{display:none;position:absolute;z-index:20;left:0;right:0;top:100%;max-height:300px;overflow:auto;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 8px 22px #0002}.results.open{display:block}.opt{padding:9px 10px;border-bottom:1px solid #eee;cursor:pointer}.opt:hover{background:#fff5f4}.opt b{display:block;font-size:13px}.opt span{font-size:11px;color:#777}.loading{padding:30px;text-align:center;font-weight:700}@media(max-width:800px){.kpis{grid-template-columns:repeat(2,1fr)}.form{grid-template-columns:1fr}.fg.wide{grid-column:auto}header{align-items:flex-start}.brand{white-space:nowrap}}
-</style></head><body><header><div><h1>DASHBOARD TIẾP XÚC TRƯỜNG HỌC SAU SÁP NHẬP</h1><div style="font-size:12px;opacity:.9;margin-top:3px">Dữ liệu dùng chung Google Sheet</div></div><div class="brand">VIETTEL CAO BẰNG</div></header><div class="wrap">
-<div id="loading" class="card loading">Đang tải dữ liệu từ Google Sheet...</div><div id="app" style="display:none">
-<div class="kpis"><div class="kpi"><div class="num" id="kTotal">0</div><div class="lbl">Tổng trường</div></div><div class="kpi"><div class="num" id="kDone">0</div><div class="lbl">Đã có kết quả tiếp xúc</div></div><div class="kpi"><div class="num" id="kPending">0</div><div class="lbl">Chưa có kết quả</div></div><div class="kpi"><div class="num" id="kRate">0%</div><div class="lbl">Tỷ lệ hoàn thành</div></div></div>
-<div class="card"><h3>Kết quả theo AM phụ trách</h3><div class="amgrid" id="amGrid"></div></div>
-<div class="card"><h3>Cập nhật kết quả tiếp xúc</h3><div class="form">
-<div class="fg wide searchbox"><label>Tên xã/phường - trường *</label><input id="school" autocomplete="off" placeholder="Bấm và gõ tên xã hoặc trường..."><div id="results" class="results"></div></div>
-<div class="fg"><label>Mức ưu tiên *</label><input id="prio" readonly></div>
-<div class="fg"><label>AM phụ trách *</label><input id="am" placeholder="Nhập AM phụ trách"></div>
-<div class="fg"><label>Ngày tiếp xúc *</label><input id="ngay" type="date"></div>
-<div class="fg"><label>Người đại diện *</label><input id="nguoi" placeholder="Nhập người đại diện"></div>
-<div class="fg"><label>SĐT *</label><input id="sdt" inputmode="tel" placeholder="Nhập số điện thoại"></div>
-<div class="fg"><label>Dùng DV Viettel *</label><input id="dv" placeholder="Nhập dịch vụ/tình trạng sử dụng"></div>
-<div class="fg"><label>Đối thủ *</label><input id="ncc" placeholder="Nhập nhà mạng/NCC khác"></div>
-<div class="fg wide"><label>Kết quả tiếp xúc *</label><input id="ketqua" placeholder="Nhập kết quả tiếp xúc"></div>
-<div class="fg wide"><label>Ghi chú</label><input id="ghichu" placeholder="Không bắt buộc"></div></div>
-<div class="actions"><button class="save" id="save">LƯU</button><button class="refresh" id="refresh">TẢI LẠI DỮ LIỆU</button><span id="msg" class="msg"></span></div></div></div></div>
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tiếp xúc trường học - Viettel Cao Bằng</title>
+<style>
+:root{--r:#e80500;--d:#42494d;--g:#1ba94c;--o:#ff8a00;--b:#f4f5f6}
+*{box-sizing:border-box}
+body{margin:0;font-family:Arial,sans-serif;background:var(--b);color:var(--d)}
+header{background:var(--r);color:white;padding:16px 20px;display:flex;justify-content:space-between;gap:16px;align-items:center}
+header h1{font-size:18px;margin:0}.brand{font-weight:800;border:1px solid #fff;border-radius:5px;padding:4px 8px}
+.wrap{max-width:1240px;margin:auto;padding:18px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px}
+.kpi,.card{background:white;border-radius:12px;box-shadow:0 2px 7px #0001}
+.kpi{padding:14px;border-top:4px solid var(--r)}.num{font-size:25px;font-weight:800}.lbl{font-size:12px;color:#73797d;margin-top:3px}
+.card{padding:16px;margin-bottom:14px}.card h3{margin:0 0 12px;font-size:15px}
+.form{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.fg{display:flex;flex-direction:column;gap:4px}.fg.wide{grid-column:span 2}.fg.full{grid-column:1/-1}
+label{font-size:11px;font-weight:800;text-transform:uppercase;color:#6b7278}
+input,textarea{width:100%;padding:9px 10px;border:1.5px solid #dfe3e6;border-radius:8px;font-size:14px;background:#fff;font-family:Arial,sans-serif}
+textarea{min-height:70px;resize:vertical}
+input[readonly]{background:#f1f2f3;color:#555}
+.invalid{border-color:var(--r)!important;background:#fff4f3!important}
+.actions{display:flex;align-items:center;gap:10px;margin-top:14px;flex-wrap:wrap}
+button{border:0;border-radius:8px;padding:10px 18px;font-weight:800;cursor:pointer}
+button:disabled{opacity:.5;cursor:not-allowed}.save{background:var(--r);color:#fff}.refresh{background:var(--d);color:#fff}
+.msg{font-size:13px;font-weight:700}.ok{color:var(--g)}.err{color:var(--r)}
+.amgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px}
+.am{border:1px solid #e5e7e9;border-radius:9px;padding:10px}.am b{display:block;margin-bottom:6px}
+.bar{height:7px;background:#eee;border-radius:6px;overflow:hidden}.bar span{display:block;height:100%;background:var(--g)}
+.small{font-size:12px;color:#73797d;margin-top:5px}
+.searchbox{position:relative}.results{display:none;position:absolute;z-index:20;left:0;right:0;top:100%;max-height:320px;overflow:auto;background:#fff;border:1px solid #ddd;border-radius:8px;box-shadow:0 8px 22px #0002}
+.results.open{display:block}.opt{padding:9px 10px;border-bottom:1px solid #eee;cursor:pointer}.opt:hover{background:#fff5f4}.opt b{display:block;font-size:13px}.opt span{font-size:11px;color:#777}
+.loading{padding:30px;text-align:center;font-weight:700}
+.notice{padding:10px 12px;border-radius:8px;background:#fff4e6;color:#9a5a00;font-size:12px;font-weight:700;margin-bottom:12px;display:none}
+@media(max-width:800px){.kpis{grid-template-columns:repeat(2,1fr)}.form{grid-template-columns:1fr}.fg.wide,.fg.full{grid-column:auto}header{align-items:flex-start}.brand{white-space:nowrap}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>DASHBOARD TIẾP XÚC TRƯỜNG HỌC SAU SÁP NHẬP</h1>
+    <div style="font-size:12px;opacity:.9;margin-top:3px">Dữ liệu dùng chung Google Sheet</div>
+  </div>
+  <div class="brand">VIETTEL CAO BẰNG</div>
+</header>
+
+<div class="wrap">
+  <div id="loading" class="card loading">Đang tải dữ liệu từ Google Sheet...</div>
+  <div id="app" style="display:none">
+    <div id="notice" class="notice"></div>
+
+    <div class="kpis">
+      <div class="kpi"><div class="num" id="kTotal">0</div><div class="lbl">Tổng trường</div></div>
+      <div class="kpi"><div class="num" id="kDone">0</div><div class="lbl">Đã có kết quả tiếp xúc</div></div>
+      <div class="kpi"><div class="num" id="kPending">0</div><div class="lbl">Chưa có kết quả</div></div>
+      <div class="kpi"><div class="num" id="kRate">0%</div><div class="lbl">Tỷ lệ hoàn thành</div></div>
+    </div>
+
+    <div class="card"><h3>Kết quả theo AM phụ trách</h3><div class="amgrid" id="amGrid"></div></div>
+
+    <div class="card">
+      <h3>Cập nhật kết quả tiếp xúc</h3>
+      <div class="form">
+        <div class="fg wide searchbox">
+          <label>Tên xã/phường - trường *</label>
+          <input id="school" autocomplete="off" placeholder="Bấm và gõ tên xã hoặc tên trường...">
+          <div id="results" class="results"></div>
+        </div>
+        <div class="fg"><label>Mức ưu tiên</label><input id="prio" readonly></div>
+
+        <div class="fg"><label>Cấp học</label><input id="cap" readonly></div>
+        <div class="fg"><label>GIAO AM ban đầu</label><input id="giaoam" readonly></div>
+        <div class="fg"><label>AM phụ trách *</label><input id="am" placeholder="Nhập/chọn AM phụ trách"></div>
+
+        <div class="fg"><label>Ngày tiếp xúc *</label><input id="ngay" type="date"></div>
+        <div class="fg"><label>Người đại diện *</label><input id="nguoi" placeholder="Nhập người đại diện"></div>
+        <div class="fg"><label>Chức vụ *</label><input id="chucvu" placeholder="Nhập chức vụ"></div>
+
+        <div class="fg"><label>SĐT *</label><input id="sdt" inputmode="tel" placeholder="Nhập số điện thoại"></div>
+        <div class="fg"><label>Dùng DV Viettel *</label><input id="dv" placeholder="Ví dụ: Có / Không / Một phần"></div>
+        <div class="fg"><label>Dịch vụ Viettel đang sử dụng *</label><input id="dichvu" placeholder="Nhập dịch vụ Viettel đang sử dụng"></div>
+
+        <div class="fg"><label>Đối thủ/NCC khác *</label><input id="ncc" placeholder="Nhập nhà mạng/NCC khác"></div>
+        <div class="fg wide"><label>Nhu cầu/Vấn đề ghi nhận *</label><textarea id="nhucau" placeholder="Nhập nhu cầu hoặc vấn đề ghi nhận"></textarea></div>
+
+        <div class="fg wide"><label>Giải pháp đề xuất *</label><textarea id="giaiphap" placeholder="Nhập giải pháp đề xuất"></textarea></div>
+        <div class="fg"><label>Kết quả tiếp xúc *</label><input id="ketqua" placeholder="Nhập kết quả tiếp xúc"></div>
+
+        <div class="fg full"><label>Ghi chú</label><textarea id="ghichu" placeholder="Không bắt buộc"></textarea></div>
+      </div>
+
+      <div class="actions">
+        <button class="save" id="save">LƯU</button>
+        <button class="refresh" id="refresh">TẢI LẠI DỮ LIỆU</button>
+        <span id="msg" class="msg"></span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
-const API='https://script.google.com/macros/s/AKfycbzp6C84E5g8PZRtVRzE7PW0a8SwNcZc_fHOKDfa05s2jZJN3iDx7pC7keeiAvxr2xA-/exec';let data=[],selected=null;const $=id=>document.getElementById(id);const norm=s=>String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
-function inputDate(v){let m=String(v||'').match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);return m?`${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`:(/^\d{4}-\d{2}-\d{2}$/.test(v||'')?v:'')}
-function outDate(v){let m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);return m?`${m[3]}/${m[2]}/${m[1]}`:(v||'')}
-function jsonp(p){return new Promise((ok,no)=>{let cb='cb'+Date.now()+Math.random().toString(36).slice(2),s=document.createElement('script'),t=setTimeout(()=>{clean();no(Error('Quá thời gian chờ Google Sheet'))},12000);function clean(){clearTimeout(t);delete window[cb];s.remove()}window[cb]=x=>{clean();x&&x.ok?ok(x):no(Error(x&&x.error||'Lỗi Google Sheet'))};s.onerror=()=>{clean();no(Error('Không kết nối được Apps Script'))};s.src=API+'?'+new URLSearchParams({...p,callback:cb,t:Date.now()});document.head.appendChild(s)})}
-async function load(){try{$('msg').textContent='';let r=await jsonp({action:'list'});data=r.data||[];render();$('loading').style.display='none';$('app').style.display='block'}catch(e){$('loading').textContent='Lỗi tải dữ liệu: '+e.message}}
-function render(){let total=data.length,done=data.filter(x=>norm(x.ketqua)).length;$('kTotal').textContent=total;$('kDone').textContent=done;$('kPending').textContent=total-done;$('kRate').textContent=total?Math.round(done*100/total)+'%':'0%';let map={};data.forEach(x=>{let a=(x.am||'Chưa phân AM').trim()||'Chưa phân AM';map[a]??={t:0,d:0};map[a].t++;if(norm(x.ketqua))map[a].d++});$('amGrid').innerHTML=Object.entries(map).sort((a,b)=>a[0].localeCompare(b[0],'vi')).map(([a,v])=>`<div class="am"><b>${esc(a)}</b><div class="bar"><span style="width:${v.t?Math.round(v.d*100/v.t):0}%"></span></div><div class="small">${v.d}/${v.t} trường · ${v.t?Math.round(v.d*100/v.t):0}%</div></div>`).join('')}
-function esc(s){return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-function showResults(q=''){q=norm(q);let rows=data.filter(x=>!q||norm(x.xa+' '+x.truong).includes(q)).slice(0,80);$('results').innerHTML=rows.map((x,i)=>`<div class="opt" data-i="${data.indexOf(x)}"><b>${esc(x.truong)}</b><span>${esc(x.xa)} · ${esc(x.uutien)}</span></div>`).join('')||'<div class="opt">Không tìm thấy</div>';$('results').classList.add('open')}
-$('school').onclick=()=>showResults($('school').value);$('school').oninput=()=>{selected=null;showResults($('school').value)};$('results').onclick=e=>{let o=e.target.closest('[data-i]');if(!o)return;pick(data[+o.dataset.i])};document.addEventListener('click',e=>{if(!e.target.closest('.searchbox'))$('results').classList.remove('open')});
-function pick(x){selected=x;$('school').value=x.xa+' — '+x.truong;$('prio').value=x.uutien||'';$('am').value=x.am||'';$('ngay').value=inputDate(x.ngay);$('nguoi').value=x.nguoi||'';$('sdt').value=x.sdt||'';$('dv').value=x.dasudung||'';$('ncc').value=x.ncc||'';$('ketqua').value=x.ketqua||'';$('ghichu').value=x.ghichu||'';$('results').classList.remove('open');clearInvalid()}
-function clearInvalid(){document.querySelectorAll('.invalid').forEach(x=>x.classList.remove('invalid'));$('msg').textContent='';$('msg').className='msg'}
-function req(){let vals={school:$('school').value,prio:$('prio').value,am:$('am').value,ngay:$('ngay').value,nguoi:$('nguoi').value,sdt:$('sdt').value,dv:$('dv').value,ncc:$('ncc').value,ketqua:$('ketqua').value};let ids={school:'school',prio:'prio',am:'am',ngay:'ngay',nguoi:'nguoi',sdt:'sdt',dv:'dv',ncc:'ncc',ketqua:'ketqua'},miss=Object.entries(vals).filter(([,v])=>!String(v||'').trim());miss.forEach(([k])=>$(ids[k]).classList.add('invalid'));return miss.map(([k])=>({school:'Tên xã/trường',prio:'Mức ưu tiên',am:'AM phụ trách',ngay:'Ngày tiếp xúc',nguoi:'Người đại diện',sdt:'SĐT',dv:'Dùng DV Viettel',ncc:'Đối thủ',ketqua:'Kết quả tiếp xúc'}[k]))}
-function postForm(p){return new Promise((ok,no)=>{let n='f'+Date.now(),f=document.createElement('form'),i=document.createElement('iframe');i.name=n;i.style.display=f.style.display='none';f.method='POST';f.target=n;f.action=API;Object.entries(p).forEach(([k,v])=>{let x=document.createElement('input');x.name=k;x.value=v??'';f.appendChild(x)});document.body.append(i,f);try{f.submit()}catch(e){no(e);return}setTimeout(()=>{f.remove();i.remove();ok()},1400)})}
-async function confirmSave(x){for(let i=0;i<8;i++){await new Promise(r=>setTimeout(r,650));try{let p=await jsonp({action:'get',xa:x.xa,truong:x.truong}),r=p.record;if(r&&norm(r.am)==norm(x.am)&&norm(r.ketqua)==norm(x.ketqua)&&norm(r.ngay)==norm(x.ngay)&&norm(r.nguoi)==norm(x.nguoi)&&norm(r.sdt)==norm(x.sdt)&&norm(r.dasudung)==norm(x.dasudung)&&norm(r.ncc)==norm(x.ncc)&&norm(r.ghichu)==norm(x.ghichu))return r}catch(e){}}throw Error('Chưa xác nhận được dữ liệu đã ghi')}
-$('save').onclick=async()=>{clearInvalid();if(!selected){$('school').classList.add('invalid');$('msg').textContent='Chưa chọn trường';$('msg').className='msg err';return}let miss=req();if(miss.length){$('msg').textContent='Thiếu: '+miss.join(', ');$('msg').className='msg err';alert('Chưa thể lưu. Thiếu:\n- '+miss.join('\n- ')+'\n\nGhi chú được phép để trống.');return}let p={action:'save',xa:selected.xa,truong:selected.truong,uutien:$('prio').value,am:$('am').value.trim(),ketqua:$('ketqua').value.trim(),ngay:outDate($('ngay').value),nguoi:$('nguoi').value.trim(),sdt:$('sdt').value.trim(),dasudung:$('dv').value.trim(),ncc:$('ncc').value.trim(),ghichu:$('ghichu').value.trim()};$('save').disabled=true;$('save').textContent='ĐANG LƯU...';$('msg').textContent='Đang lưu vào Google Sheet...';try{await postForm(p);let r=await confirmSave(p);Object.assign(selected,r);$('msg').textContent='ĐÃ LƯU THÀNH CÔNG';$('msg').className='msg ok';await load()}catch(e){$('msg').textContent='LƯU THẤT BẠI: '+e.message;$('msg').className='msg err'}finally{$('save').disabled=false;$('save').textContent='LƯU'}};$('refresh').onclick=load;load();
-</script></body></html>
+const API='https://script.google.com/macros/s/AKfycbzp6C84E5g8PZRtVRzE7PW0a8SwNcZc_fHOKDfa05s2jZJN3iDx7pC7keeiAvxr2xA-/exec';
+let data=[], selected=null, backendVersion=0;
+const $=id=>document.getElementById(id);
+const norm=s=>String(s||'').trim().toLowerCase().replace(/\s+/g,' ');
+
+function inputDate(v){
+  const s=String(v||'');
+  let m=s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if(m) return `${m[3]}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`;
+  return /^\d{4}-\d{2}-\d{2}$/.test(s)?s:'';
+}
+function outDate(v){
+  let m=String(v||'').match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  return m?`${m[3]}/${m[2]}/${m[1]}`:(v||'');
+}
+function esc(s){
+  return String(s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function jsonp(p){
+  return new Promise((ok,no)=>{
+    const cb='cb'+Date.now()+Math.random().toString(36).slice(2);
+    const s=document.createElement('script');
+    const t=setTimeout(()=>{clean();no(Error('Quá thời gian chờ Google Sheet'))},12000);
+    function clean(){clearTimeout(t);try{delete window[cb]}catch(_){};s.remove()}
+    window[cb]=x=>{clean();x&&x.ok?ok(x):no(Error(x&&x.error||'Lỗi Google Sheet'))};
+    s.onerror=()=>{clean();no(Error('Không kết nối được Apps Script'))};
+    s.src=API+'?'+new URLSearchParams({...p,callback:cb,t:Date.now()});
+    document.head.appendChild(s);
+  });
+}
+
+async function load(){
+  try{
+    $('msg').textContent='';
+    const h=await jsonp({action:'health'});
+    backendVersion=Number(h.version||0);
+    const r=await jsonp({action:'list'});
+    data=r.data||[];
+    render();
+    $('loading').style.display='none';
+    $('app').style.display='block';
+
+    if(backendVersion<2){
+      $('save').disabled=true;
+      $('notice').style.display='block';
+      $('notice').textContent='Apps Script đang là bản cũ. Cần cập nhật lên V2 để lưu đủ Chức vụ, Dịch vụ Viettel, Nhu cầu/Vấn đề và Giải pháp đề xuất.';
+    }else{
+      $('save').disabled=false;
+      $('notice').style.display='none';
+    }
+  }catch(e){
+    $('loading').textContent='Lỗi tải dữ liệu: '+e.message;
+  }
+}
+
+function render(){
+  const total=data.length;
+  const done=data.filter(x=>norm(x.ketqua)).length;
+  $('kTotal').textContent=total;
+  $('kDone').textContent=done;
+  $('kPending').textContent=total-done;
+  $('kRate').textContent=total?Math.round(done*100/total)+'%':'0%';
+
+  const map={};
+  data.forEach(x=>{
+    const a=(x.am||'Chưa phân AM').trim()||'Chưa phân AM';
+    map[a]??={t:0,d:0};
+    map[a].t++;
+    if(norm(x.ketqua)) map[a].d++;
+  });
+  $('amGrid').innerHTML=Object.entries(map).sort((a,b)=>a[0].localeCompare(b[0],'vi')).map(([a,v])=>{
+    const pct=v.t?Math.round(v.d*100/v.t):0;
+    return `<div class="am"><b>${esc(a)}</b><div class="bar"><span style="width:${pct}%"></span></div><div class="small">${v.d}/${v.t} trường · ${pct}%</div></div>`;
+  }).join('');
+}
+
+function showResults(q=''){
+  q=norm(q);
+  const rows=data.filter(x=>!q||norm((x.xa||'')+' '+(x.truong||'')).includes(q)).slice(0,100);
+  $('results').innerHTML=rows.map(x=>{
+    const i=data.indexOf(x);
+    return `<div class="opt" data-i="${i}"><b>${esc(x.truong)}</b><span>${esc(x.xa)} · ${esc(x.cap||'')} · ${esc(x.uutien||'')} · Giao AM: ${esc(x.giaoam||'Chưa giao')}</span></div>`;
+  }).join('')||'<div class="opt">Không tìm thấy</div>';
+  $('results').classList.add('open');
+}
+
+$('school').onclick=()=>showResults($('school').value);
+$('school').oninput=()=>{selected=null;showResults($('school').value)};
+$('results').onclick=e=>{
+  const o=e.target.closest('[data-i]');
+  if(o) pick(data[+o.dataset.i]);
+};
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.searchbox')) $('results').classList.remove('open');
+});
+
+function pick(x){
+  selected=x;
+  $('school').value=(x.xa||'')+' — '+(x.truong||'');
+  $('prio').value=x.uutien||'';
+  $('cap').value=x.cap||'';
+  $('giaoam').value=x.giaoam||'';
+  $('am').value=x.am||'';
+  $('ngay').value=inputDate(x.ngay);
+  $('nguoi').value=x.nguoi||'';
+  $('chucvu').value=x.chucvu||'';
+  $('sdt').value=x.sdt||'';
+  $('dv').value=x.dasudung||'';
+  $('dichvu').value=x.dichvu||'';
+  $('ncc').value=x.ncc||'';
+  $('nhucau').value=x.nhucau||'';
+  $('giaiphap').value=x.giaiphap||'';
+  $('ketqua').value=x.ketqua||'';
+  $('ghichu').value=x.ghichu||'';
+  $('results').classList.remove('open');
+  clearInvalid();
+}
+
+function clearInvalid(){
+  document.querySelectorAll('.invalid').forEach(x=>x.classList.remove('invalid'));
+  $('msg').textContent='';
+  $('msg').className='msg';
+}
+
+function missingRequired(){
+  const vals={
+    school:$('school').value,
+    am:$('am').value,
+    ngay:$('ngay').value,
+    nguoi:$('nguoi').value,
+    chucvu:$('chucvu').value,
+    sdt:$('sdt').value,
+    dv:$('dv').value,
+    dichvu:$('dichvu').value,
+    ncc:$('ncc').value,
+    nhucau:$('nhucau').value,
+    giaiphap:$('giaiphap').value,
+    ketqua:$('ketqua').value
+  };
+  const labels={
+    school:'Tên xã/trường',am:'AM phụ trách',ngay:'Ngày tiếp xúc',nguoi:'Người đại diện',
+    chucvu:'Chức vụ',sdt:'SĐT',dv:'Dùng DV Viettel',dichvu:'Dịch vụ Viettel đang sử dụng',
+    ncc:'Đối thủ/NCC khác',nhucau:'Nhu cầu/Vấn đề ghi nhận',giaiphap:'Giải pháp đề xuất',
+    ketqua:'Kết quả tiếp xúc'
+  };
+  const miss=Object.entries(vals).filter(([,v])=>!String(v||'').trim());
+  miss.forEach(([k])=>$(k==='dv'?'dv':k).classList.add('invalid'));
+  return miss.map(([k])=>labels[k]);
+}
+
+function postForm(p){
+  return new Promise((ok,no)=>{
+    const n='f'+Date.now();
+    const f=document.createElement('form');
+    const i=document.createElement('iframe');
+    i.name=n;i.style.display='none';f.style.display='none';
+    f.method='POST';f.target=n;f.action=API;
+    Object.entries(p).forEach(([k,v])=>{
+      const x=document.createElement('input');
+      x.name=k;x.value=v??'';
+      f.appendChild(x);
+    });
+    document.body.append(i,f);
+    try{f.submit()}catch(e){f.remove();i.remove();no(e);return}
+    setTimeout(()=>{f.remove();i.remove();ok()},1400);
+  });
+}
+
+async function confirmSave(x){
+  for(let i=0;i<10;i++){
+    await new Promise(r=>setTimeout(r,650));
+    try{
+      const p=await jsonp({action:'get',xa:x.xa,truong:x.truong});
+      const r=p.record;
+      if(r &&
+        norm(r.am)==norm(x.am) &&
+        norm(r.ketqua)==norm(x.ketqua) &&
+        norm(r.ngay)==norm(x.ngay) &&
+        norm(r.nguoi)==norm(x.nguoi) &&
+        norm(r.chucvu)==norm(x.chucvu) &&
+        norm(r.sdt)==norm(x.sdt) &&
+        norm(r.dasudung)==norm(x.dasudung) &&
+        norm(r.dichvu)==norm(x.dichvu) &&
+        norm(r.ncc)==norm(x.ncc) &&
+        norm(r.nhucau)==norm(x.nhucau) &&
+        norm(r.giaiphap)==norm(x.giaiphap) &&
+        norm(r.ghichu)==norm(x.ghichu)
+      ) return r;
+    }catch(e){}
+  }
+  throw Error('Chưa xác nhận được dữ liệu đã ghi đầy đủ');
+}
+
+$('save').onclick=async()=>{
+  clearInvalid();
+  if(backendVersion<2){
+    $('msg').textContent='Cần cập nhật Apps Script V2 trước khi lưu.';
+    $('msg').className='msg err';
+    return;
+  }
+  if(!selected){
+    $('school').classList.add('invalid');
+    $('msg').textContent='Chưa chọn trường';
+    $('msg').className='msg err';
+    return;
+  }
+  const miss=missingRequired();
+  if(miss.length){
+    $('msg').textContent='Thiếu: '+miss.join(', ');
+    $('msg').className='msg err';
+    alert('Chưa thể lưu. Thiếu:\n- '+miss.join('\n- ')+'\n\nGhi chú được phép để trống.');
+    return;
+  }
+
+  const p={
+    action:'save',
+    xa:selected.xa,
+    truong:selected.truong,
+    am:$('am').value.trim(),
+    ngay:outDate($('ngay').value),
+    nguoi:$('nguoi').value.trim(),
+    chucvu:$('chucvu').value.trim(),
+    sdt:$('sdt').value.trim(),
+    dasudung:$('dv').value.trim(),
+    dichvu:$('dichvu').value.trim(),
+    ncc:$('ncc').value.trim(),
+    nhucau:$('nhucau').value.trim(),
+    giaiphap:$('giaiphap').value.trim(),
+    ketqua:$('ketqua').value.trim(),
+    ghichu:$('ghichu').value.trim()
+  };
+
+  $('save').disabled=true;
+  $('save').textContent='ĐANG LƯU...';
+  $('msg').textContent='Đang lưu đủ thông tin vào Google Sheet...';
+
+  try{
+    await postForm(p);
+    const r=await confirmSave(p);
+    Object.assign(selected,r);
+    $('msg').textContent='ĐÃ LƯU THÀNH CÔNG';
+    $('msg').className='msg ok';
+    await load();
+  }catch(e){
+    $('msg').textContent='LƯU THẤT BẠI: '+e.message;
+    $('msg').className='msg err';
+  }finally{
+    $('save').disabled=backendVersion<2;
+    $('save').textContent='LƯU';
+  }
+};
+
+$('refresh').onclick=load;
+load();
+</script>
+</body>
+</html>
