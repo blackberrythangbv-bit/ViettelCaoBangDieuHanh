@@ -58,7 +58,7 @@ button:disabled{opacity:.5;cursor:not-allowed}.save{background:var(--r);color:#f
       <div class="kpi"><div class="num" id="kRate">0%</div><div class="lbl">Tỷ lệ hoàn thành</div></div>
     </div>
 
-    <div class="card"><h3>Kết quả theo AM phụ trách</h3><div class="amgrid" id="amGrid"></div></div>
+    <div class="card"><h3>Kết quả theo AM (ưu tiên AM phụ trách, chưa có thì theo GIAO AM)</h3><div class="amgrid" id="amGrid"></div></div>
 
     <div class="card">
       <h3>Cập nhật kết quả tiếp xúc</h3>
@@ -72,7 +72,7 @@ button:disabled{opacity:.5;cursor:not-allowed}.save{background:var(--r);color:#f
 
         <div class="fg"><label>Cấp học</label><input id="cap" readonly></div>
         <div class="fg"><label>GIAO AM ban đầu</label><input id="giaoam" readonly></div>
-        <div class="fg"><label>AM phụ trách *</label><input id="am" placeholder="Nhập/chọn AM phụ trách"></div>
+        <div class="fg"><label>AM phụ trách *</label><input id="am" list="amList" placeholder="Chọn hoặc nhập AM phụ trách"><datalist id="amList"></datalist><div class="small">Không tự lấy GIAO AM; có thể chọn hoặc nhập AM khác.</div></div>
 
         <div class="fg"><label>Ngày tiếp xúc *</label><input id="ngay" type="date"></div>
         <div class="fg"><label>Người đại diện *</label><input id="nguoi" placeholder="Nhập người đại diện"></div>
@@ -138,7 +138,7 @@ async function load(){
     const h=await jsonp({action:'health'});
     backendVersion=Number(h.version||0);
     const r=await jsonp({action:'list'});
-    data=r.data||[];
+    data=(r.data||[]).filter(x=>/^\d+$/.test(String(x.stt||'').trim()));
     render();
     $('loading').style.display='none';
     $('app').style.display='block';
@@ -164,9 +164,13 @@ function render(){
   $('kPending').textContent=total-done;
   $('kRate').textContent=total?Math.round(done*100/total)+'%':'0%';
 
+  const amNames=[...new Set(data.flatMap(x=>[x.giaoam,x.am]).map(x=>String(x||'').trim()).filter(Boolean))]
+    .sort((a,b)=>a.localeCompare(b,'vi'));
+  $('amList').innerHTML=amNames.map(a=>`<option value="${esc(a)}"></option>`).join('');
+
   const map={};
   data.forEach(x=>{
-    const a=(x.am||'Chưa phân AM').trim()||'Chưa phân AM';
+    const a=String(x.am||x.giaoam||'Chưa giao AM').trim()||'Chưa giao AM';
     map[a]??={t:0,d:0};
     map[a].t++;
     if(norm(x.ketqua)) map[a].d++;
