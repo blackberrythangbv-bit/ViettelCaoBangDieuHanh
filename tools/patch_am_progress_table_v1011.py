@@ -46,7 +46,7 @@ s = s.replace(old, new, 1)
 marker = '''  Widget progress() {
 '''
 
-methods = '''  Widget _kpiProgressTable({
+methods = r'''  Widget _kpiProgressTable({
     required List<double> th,
     required List<double> kh,
     required double elapsed,
@@ -97,22 +97,22 @@ methods = '''  Widget _kpiProgressTable({
       final hasKh = kh[i] > 0;
       final ratio = hasKh ? th[i] / kh[i] : 0.0;
       final pending = elapsed <= 0;
-      final đạt = hasKh && !pending && ratio + 1e-12 >= elapsed;
+      final isOnTrack = hasKh && !pending && ratio + 1e-12 >= elapsed;
       final status = !hasKh
           ? 'Không giao'
           : pending
               ? 'Chưa đánh giá'
-              : đạt
+              : isOnTrack
                   ? 'Đạt tiến độ'
                   : 'Không đạt';
       final statusColor = !hasKh || pending
           ? const Color(0xFF596169)
-          : đạt
+          : isOnTrack
               ? const Color(0xFF00A651)
               : const Color(0xFFE80500);
       final statusBg = !hasKh || pending
           ? const Color(0xFFF0F1F2)
-          : đạt
+          : isOnTrack
               ? const Color(0xFFE7F6ED)
               : const Color(0xFFFFECEB);
       final rowBg = i.isEven ? Colors.white : const Color(0xFFF8F9FA);
