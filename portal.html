@@ -8,48 +8,28 @@
 <link rel="dns-prefetch" href="https://script.google.com">
 <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
 <link rel="dns-prefetch" href="https://script.googleusercontent.com">
-<title>Viettel Cao Bằng - Điều hành tiếp xúc bán hàng</title>
+<title>Viettel Cao Bằng - Điều hành kinh doanh</title>
 <style>
-:root{--red:#e80500;--red2:#c90400;--dark:#40474b;--bg:#f3f5f6;--line:#e4e7e9;--txt:#30363a;--muted:#747b80}
-*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:Calibri,Arial,sans-serif;color:var(--txt);background:var(--bg)}body{overflow:hidden}
-.tabs{height:58px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:10px;padding:7px 14px;position:relative;z-index:30;box-shadow:0 2px 8px #00000012}
-.tab{min-width:190px;border:1px solid var(--line);background:#f7f8f8;color:var(--dark);border-radius:10px;padding:10px 18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;font-size:14px}.tab.active{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 2px 7px #e8050030}.tab:active{transform:scale(.98)}
-.status{margin-left:12px;font-size:11px;color:var(--muted);white-space:nowrap}.top{height:60px;background:linear-gradient(90deg,var(--red),var(--red2));color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 18px;box-shadow:0 2px 8px #0002;position:relative;z-index:20}
-.brand{display:flex;align-items:center;gap:12px;min-width:0}.logo{font-weight:900;border:1px solid #fff;border-radius:7px;padding:5px 10px;white-space:nowrap}.title{min-width:0}.title b{display:block;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.title span{display:block;font-size:11px;opacity:.9;margin-top:2px}.actions{display:flex;gap:8px}.iconbtn{border:1px solid #ffffff66;color:#fff;background:#ffffff12;border-radius:8px;padding:8px 11px;font-weight:800;cursor:pointer}
-.stage{height:calc(100vh - 118px);position:relative;background:var(--bg)}.panel{position:absolute;inset:0;visibility:hidden;pointer-events:none;contain:layout paint style}.panel.active{visibility:visible;pointer-events:auto}.frame{width:100%;height:100%;border:0;background:#fff;display:block}.loading{position:absolute;inset:0;display:grid;place-items:center;background:#f3f5f6;z-index:2;pointer-events:none}.loading.hide{display:none}.loadbox{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 24px;box-shadow:0 3px 12px #0001;font-weight:800;color:var(--dark)}
-.fallback{position:absolute;right:12px;bottom:12px;z-index:5;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;box-shadow:0 2px 10px #0002;font-size:11px;color:var(--muted)}.fallback a{color:var(--red);font-weight:800;text-decoration:none}
-@media(max-width:720px){.tabs{height:54px;padding:6px;gap:6px;justify-content:stretch}.tab{min-width:0;flex:1;padding:9px 6px;font-size:12px}.status{display:none}.top{height:58px;padding:0 10px}.logo{font-size:12px;padding:4px 7px}.title b{font-size:13px}.title span{display:none}.actions{display:none}.stage{height:calc(100vh - 112px)}.fallback{right:7px;bottom:7px}}
+:root{--red:#e80500;--red2:#c90400;--dark:#40474b;--bg:#f3f5f6;--line:#e4e7e9;--txt:#30363a;--muted:#747b80}*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:Calibri,Arial,sans-serif;color:var(--txt);background:var(--bg)}body{overflow:hidden}
+.top{height:60px;background:linear-gradient(90deg,var(--red),var(--red2));color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 18px;box-shadow:0 2px 8px #0002;position:relative;z-index:30}.brand{display:flex;align-items:center;gap:12px;min-width:0}.logo{font-weight:900;border:1px solid #fff;border-radius:7px;padding:5px 10px;white-space:nowrap}.title{min-width:0}.title b{display:block;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.title span{display:block;font-size:11px;opacity:.9;margin-top:2px}.actions{display:flex;gap:8px}.iconbtn{border:1px solid #ffffff66;color:#fff;background:#ffffff12;border-radius:8px;padding:8px 11px;font-weight:800;cursor:pointer}
+.tabs{height:58px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:10px;padding:7px 14px;position:relative;z-index:20;box-shadow:0 2px 8px #00000012}.tab{min-width:170px;border:1px solid var(--line);background:#f7f8f8;color:var(--dark);border-radius:10px;padding:10px 18px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;white-space:nowrap;font-size:14px}.tab.active{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 2px 7px #e8050030}.tab:active{transform:scale(.98)}.status{margin-left:12px;font-size:11px;color:var(--muted);white-space:nowrap}
+.stage{height:calc(100vh - 118px);position:relative;background:var(--bg)}.panel{position:absolute;inset:0;visibility:hidden;pointer-events:none;contain:layout paint style}.panel.active{visibility:visible;pointer-events:auto}.frame{width:100%;height:100%;border:0;background:#fff;display:block}.loading{position:absolute;inset:0;display:grid;place-items:center;background:#f3f5f6;z-index:2;pointer-events:none}.loading.hide{display:none}.loadbox{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 24px;box-shadow:0 3px 12px #0001;font-weight:800;color:var(--dark)}.fallback{position:absolute;right:12px;bottom:12px;z-index:5;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;box-shadow:0 2px 10px #0002;font-size:11px;color:var(--muted)}.fallback a{color:var(--red);font-weight:800;text-decoration:none}
+@media(max-width:760px){.top{height:58px;padding:0 10px}.logo{font-size:12px;padding:4px 7px}.title b{font-size:13px}.title span{display:none}.actions{display:none}.tabs{height:54px;padding:6px;gap:6px;justify-content:stretch}.tab{min-width:0;flex:1;padding:9px 6px;font-size:11.5px}.status{display:none}.stage{height:calc(100vh - 112px)}.fallback{right:7px;bottom:7px}}
 </style>
 </head>
 <body>
-<nav class="tabs" aria-label="Chuyển nhanh chức năng">
-  <button class="tab active" data-panel="school">🏫 TRƯỜNG HỌC</button>
-  <button class="tab" data-panel="enterprise">🏢 DOANH NGHIỆP</button>
-  <div class="status" id="status">Đang mở: Trường học</div>
-</nav>
-<header class="top">
-  <div class="brand"><div class="logo">VIETTEL CAO BẰNG</div><div class="title"><b>ĐIỀU HÀNH TIẾP XÚC BÁN HÀNG</b><span>Chuyển nhanh Trường học · Doanh nghiệp</span></div></div>
-  <div class="actions"><button class="iconbtn" id="reload">↻ TẢI LẠI</button></div>
-</header>
+<header class="top"><div class="brand"><div class="logo">VIETTEL CAO BẰNG</div><div class="title"><b>ĐIỀU HÀNH KINH DOANH</b><span>KPI mặc định · Trường học/DN chỉ nạp khi bấm</span></div></div><div class="actions"><button class="iconbtn" id="reload">↻ TẢI LẠI</button></div></header>
+<nav class="tabs" aria-label="Chuyển nhanh chức năng"><button class="tab active" data-panel="kpi">📊 KPI</button><button class="tab" data-panel="school">🏫 TRƯỜNG HỌC</button><button class="tab" data-panel="enterprise">🏢 DOANH NGHIỆP</button><div class="status" id="status">Đang mở: KPI</div></nav>
 <main class="stage">
-  <section class="panel active" id="school">
-    <div class="loading"><div class="loadbox">Đang nạp module Trường học...</div></div>
-    <iframe class="frame" title="Trường học" src="./" loading="eager"></iframe>
-  </section>
-  <section class="panel" id="enterprise">
-    <div class="loading"><div class="loadbox">Đang nạp module Doanh nghiệp...</div></div>
-    <iframe class="frame" title="Doanh nghiệp" data-base-src="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
-    <div class="fallback">Nếu module Google không hiển thị: <a href="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" target="_blank" rel="noopener">mở trực tiếp</a></div>
-  </section>
+<section class="panel active" id="kpi"><div class="loading"><div class="loadbox">Đang nạp KPI...</div></div><iframe class="frame" title="KPI" data-base-src="https://script.google.com/macros/s/AKfycbxwDT_LV1D49SKfZkv0_CfmBcRcpubbJGnd9TFBL5b1y0AHQ-a1zbRQf83CBWDeRkaApQ/exec" loading="eager" referrerpolicy="strict-origin-when-cross-origin"></iframe></section>
+<section class="panel" id="school"><div class="loading"><div class="loadbox">Đang nạp module Trường học...</div></div><iframe class="frame" title="Trường học" data-base-src="./" loading="lazy"></iframe></section>
+<section class="panel" id="enterprise"><div class="loading"><div class="loadbox">Đang nạp module Doanh nghiệp...</div></div><iframe class="frame" title="Doanh nghiệp" data-base-src="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="fallback">Nếu module Google không hiển thị: <a href="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" target="_blank" rel="noopener">mở trực tiếp</a></div></section>
 </main>
 <script>
-const names={school:'Trường học',enterprise:'Doanh nghiệp'},tabs=[...document.querySelectorAll('.tab')],panels=[...document.querySelectorAll('.panel')];
-let active='school';
-function loadEnterprise(force=false){const f=document.querySelector('#enterprise iframe');if(!f)return;if(force){f.closest('.panel').querySelector('.loading')?.classList.remove('hide');f.src=f.dataset.baseSrc+(f.dataset.baseSrc.includes('?')?'&':'?')+'_reload='+Date.now();f.dataset.started='1';return}if(!f.dataset.started){f.dataset.started='1';f.src=f.dataset.baseSrc}}
-function activate(id){if(id===active)return;active=id;for(const t of tabs)t.classList.toggle('active',t.dataset.panel===id);for(const p of panels)p.classList.toggle('active',p.id===id);document.getElementById('status').textContent='Đang mở: '+names[id];if(id==='enterprise')loadEnterprise(false)}
-for(const t of tabs)t.addEventListener('click',()=>activate(t.dataset.panel),{passive:true});
-for(const f of document.querySelectorAll('iframe'))f.addEventListener('load',()=>f.closest('.panel').querySelector('.loading')?.classList.add('hide'),{passive:true});
-document.getElementById('reload').onclick=()=>{const p=document.querySelector('.panel.active');p.querySelector('.loading')?.classList.remove('hide');if(p.id==='enterprise'){loadEnterprise(true);return}const f=p.querySelector('iframe');if(f)f.contentWindow?.location.reload()};
+const names={kpi:'KPI',school:'Trường học',enterprise:'Doanh nghiệp'},tabs=[...document.querySelectorAll('.tab')],panels=[...document.querySelectorAll('.panel')];let active='kpi';
+function ensure(id,force=false){const p=document.getElementById(id),f=p?.querySelector('iframe');if(!f)return;const base=f.dataset.baseSrc;if(force){p.querySelector('.loading')?.classList.remove('hide');f.src=base+(base.includes('?')?'&':'?')+'_reload='+Date.now();f.dataset.started='1';return}if(!f.dataset.started){f.dataset.started='1';f.src=base}}
+function activate(id){if(id===active){ensure(id,false);return}active=id;tabs.forEach(t=>t.classList.toggle('active',t.dataset.panel===id));panels.forEach(p=>p.classList.toggle('active',p.id===id));document.getElementById('status').textContent='Đang mở: '+names[id];ensure(id,false)}
+tabs.forEach(t=>t.addEventListener('click',()=>activate(t.dataset.panel),{passive:true}));document.querySelectorAll('iframe').forEach(f=>f.addEventListener('load',()=>f.closest('.panel').querySelector('.loading')?.classList.add('hide'),{passive:true}));document.getElementById('reload').onclick=()=>ensure(active,true);ensure('kpi',false);
 </script>
 </body>
 </html>
