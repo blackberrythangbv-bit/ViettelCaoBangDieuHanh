@@ -4,29 +4,77 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#e80500">
-<title>Điều hành Viettel Cao Bằng</title>
+<title>Viettel Cao Bằng - Điều hành tiếp xúc bán hàng</title>
 <style>
-:root{--r:#e80500;--r2:#c90400;--d:#40474b;--bg:#f3f5f6;--line:#e4e7e9;--muted:#747b80}*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:Calibri,Arial,sans-serif;background:var(--bg);color:var(--d)}body{overflow:hidden}.top{height:62px;background:linear-gradient(90deg,var(--r),var(--r2));color:#fff;display:flex;align-items:center;gap:9px;padding:0 12px;box-shadow:0 2px 8px #0002}.back{border:1px solid #fff;background:#fff;color:var(--r);border-radius:8px;padding:8px 10px;font-weight:900;cursor:pointer;white-space:nowrap}.brand{display:flex;align-items:center;gap:10px;min-width:0}.logo{font-weight:900;border:1px solid #fff;border-radius:7px;padding:5px 9px;white-space:nowrap}.title b{display:block;font-size:17px}.title span{display:block;font-size:11px;opacity:.9}.tabs{height:56px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:6px;padding:7px 10px;overflow-x:auto;box-shadow:0 1px 4px #0001}.tab{border:1px solid var(--line);background:#f7f8f8;color:var(--d);border-radius:8px;padding:9px 11px;font-weight:800;cursor:pointer;white-space:nowrap;text-decoration:none}.tab.active{background:var(--r);border-color:var(--r);color:#fff}.stage{height:calc(100vh - 118px);position:relative}.panel{position:absolute;inset:0;display:none}.panel.active{display:block}.frame{width:100%;height:100%;border:0;background:#fff}.loading{position:absolute;inset:0;display:grid;place-items:center;background:var(--bg);z-index:2}.loading.hide{display:none}.box{background:#fff;border:1px solid var(--line);border-radius:12px;padding:17px 22px;box-shadow:0 3px 12px #0001;font-weight:800}.fallback{position:absolute;right:10px;bottom:10px;background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 10px;box-shadow:0 2px 10px #0002;font-size:11px;z-index:3}.fallback a{color:var(--r);font-weight:800}@media(max-width:760px){.top{height:58px;padding:0 8px}.back{font-size:0;min-width:36px;padding:7px 8px}.back:before{content:'←';font-size:20px}.logo{font-size:11px;padding:4px 6px}.title b{font-size:14px}.title span{display:none}.tabs{height:54px;padding:6px}.tab{font-size:11.5px;padding:9px}.stage{height:calc(100vh - 112px)}}
+:root{--red:#e80500;--red2:#c90400;--dark:#40474b;--bg:#f3f5f6;--line:#e4e7e9;--txt:#30363a;--muted:#747b80;--white:#fff}
+*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:Calibri,Arial,sans-serif;color:var(--txt);background:var(--bg)}
+body{overflow:hidden}
+.top{height:64px;background:linear-gradient(90deg,var(--red),var(--red2));color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 18px;box-shadow:0 2px 8px #0002;position:relative;z-index:20}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}.logo{font-weight:900;border:1px solid #fff;border-radius:7px;padding:5px 10px;white-space:nowrap}.title{min-width:0}.title b{display:block;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.title span{display:block;font-size:11px;opacity:.9;margin-top:2px}
+.actions{display:flex;gap:8px}.iconbtn{border:1px solid #ffffff66;color:#fff;background:#ffffff12;border-radius:8px;padding:8px 11px;font-weight:800;cursor:pointer}
+.tabs{height:54px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px;padding:7px 14px;position:relative;z-index:15;box-shadow:0 1px 4px #0000000d}
+.tab{border:1px solid var(--line);background:#f7f8f8;color:var(--dark);border-radius:9px;padding:10px 14px;font-weight:800;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap}.tab.active{background:var(--red);border-color:var(--red);color:#fff}.tab small{font-weight:600;opacity:.8}
+.status{margin-left:auto;font-size:11px;color:var(--muted);white-space:nowrap}
+.stage{height:calc(100vh - 118px);position:relative;background:var(--bg)}
+.panel{position:absolute;inset:0;display:none}.panel.active{display:block}.frame{width:100%;height:100%;border:0;background:#fff;display:block}
+.loading{position:absolute;inset:0;display:grid;place-items:center;background:#f3f5f6;z-index:2;pointer-events:none;transition:.2s}.loading.hide{opacity:0;visibility:hidden}.loadbox{background:#fff;border:1px solid var(--line);border-radius:12px;padding:18px 24px;box-shadow:0 3px 12px #0001;font-weight:800;color:var(--dark)}
+.fallback{position:absolute;right:12px;bottom:12px;z-index:5;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;box-shadow:0 2px 10px #0002;font-size:11px;color:var(--muted)}.fallback a{color:var(--red);font-weight:800;text-decoration:none}
+@media(max-width:720px){.top{height:58px;padding:0 10px}.logo{font-size:12px;padding:4px 7px}.title b{font-size:14px}.title span{display:none}.actions{display:none}.tabs{height:54px;padding:7px 8px;overflow-x:auto}.tab{padding:9px 11px;font-size:12px}.tab small{display:none}.status{display:none}.stage{height:calc(100vh - 112px)}.fallback{right:7px;bottom:7px}}
 </style>
 </head>
 <body>
-<header class="top"><button id="back" class="back" aria-label="Quay lại">← QUAY LẠI</button><div class="brand"><div class="logo">VIETTEL CAO BẰNG</div><div class="title"><b>ĐIỀU HÀNH KHDN</b><span>App 2 độc lập • Trường học và DN chỉ nạp khi bấm</span></div></div></header>
-<nav class="tabs">
-<a class="tab" id="kpiLink">📊 KPI</a><a class="tab" id="reportLink">📋 BÁO CÁO NGÀY</a><a class="tab" id="planLink">📅 KH TUẦN</a><button class="tab" data-open="school">🏫 TRƯỜNG HỌC</button><button class="tab" data-open="enterprise">🏢 TIẾP XÚC DN</button>
+<header class="top">
+  <div class="brand">
+    <div class="logo">VIETTEL CAO BẰNG</div>
+    <div class="title"><b>ĐIỀU HÀNH TIẾP XÚC BÁN HÀNG</b><span>Một cửa vào · Hai module nghiệp vụ · Dữ liệu thời gian thực</span></div>
+  </div>
+  <div class="actions"><button class="iconbtn" id="reload">↻ TẢI LẠI</button></div>
+</header>
+<nav class="tabs" aria-label="Điều hướng module">
+  <button class="tab active" data-panel="school">🏫 TIẾP XÚC TRƯỜNG HỌC <small>Dashboard trường học</small></button>
+  <button class="tab" data-panel="enterprise">🏢 TIẾP XÚC DN <small>Tiếp xúc doanh nghiệp</small></button>
+  <div class="status" id="status">Đang mở: Tiếp xúc trường học</div>
 </nav>
 <main class="stage">
-<section id="school" class="panel"><div class="loading"><div class="box">Đang nạp Trường học...</div></div><iframe class="frame" title="Tiếp xúc trường học" data-src="./index.html" loading="lazy"></iframe></section>
-<section id="enterprise" class="panel"><div class="loading"><div class="box">Đang nạp Tiếp xúc DN...</div></div><iframe class="frame" title="Tiếp xúc DN" data-src="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="fallback">Nếu trình duyệt chặn khung: <a href="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" target="_blank" rel="noopener">mở trực tiếp</a></div></section>
+  <section class="panel active" id="school">
+    <div class="loading"><div class="loadbox">Đang nạp module Trường học...</div></div>
+    <iframe class="frame" title="Tiếp xúc Trường học" src="./" loading="eager"></iframe>
+  </section>
+  <section class="panel" id="enterprise">
+    <div class="loading"><div class="loadbox">Đang nạp module Tiếp xúc DN mới nhất...</div></div>
+    <iframe class="frame" title="Tiếp xúc DN" data-base-src="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    <div class="fallback">Nếu module Google không hiển thị do chính sách nhúng: <a href="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" target="_blank" rel="noopener">mở trực tiếp</a></div>
+  </section>
 </main>
 <script>
-const APP='https://script.google.com/macros/s/AKfycbxwDT_LV1D49SKfZkv0_CfmBcRcpubbJGnd9TFBL5b1y0AHQ-a1zbRQf83CBWDeRkaApQ/exec';
-const URLS={kpi:APP+'?view=kpi',report:APP+'?view=report',plan:APP+'?view=plan'};
-document.getElementById('kpiLink').href=URLS.kpi;document.getElementById('reportLink').href=URLS.report;document.getElementById('planLink').href=URLS.plan;
-let current='';
-function unload(id){const p=document.getElementById(id),f=p&&p.querySelector('iframe');if(!f)return;f.src='about:blank';delete f.dataset.started;p.querySelector('.loading')?.classList.remove('hide')}
-function openPanel(id){if(id!=='school'&&id!=='enterprise')return;if(current&&current!==id)unload(current);current=id;document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===id));document.querySelectorAll('[data-open]').forEach(b=>b.classList.toggle('active',b.dataset.open===id));const p=document.getElementById(id),f=p.querySelector('iframe');if(!f.dataset.started){f.dataset.started='1';f.src=f.dataset.src}}
-function goBack(){if(history.length>1){history.back();return}openPanel('school')}
-document.getElementById('back').onclick=goBack;document.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openPanel(b.dataset.open));document.querySelectorAll('iframe').forEach(f=>f.addEventListener('load',()=>{if(f.src==='about:blank')return;const p=f.closest('.panel');p.querySelector('.loading')?.classList.add('hide');if(p.id==='school'){try{const d=f.contentDocument;if(d&&!d.documentElement.dataset.schoolEnhanceV2){d.documentElement.dataset.schoolEnhanceV2='1';const s=d.createElement('script');s.src='./school-enhance-v2.js?v=6';s.async=true;d.body.appendChild(s)}}catch(e){}}}));
-const initial=new URLSearchParams(location.search).get('open');openPanel(initial==='enterprise'?'enterprise':'school');
+const names={school:'Tiếp xúc trường học',enterprise:'Tiếp xúc DN'};
+const tabs=[...document.querySelectorAll('.tab')],panels=[...document.querySelectorAll('.panel')];
+function freshUrl(base){return base+(base.includes('?')?'&':'?')+'_portalts='+Date.now()}
+function loadEnterprise(force=false){
+  const f=document.querySelector('#enterprise iframe');
+  if(!f)return;
+  if(force||!f.dataset.started){
+    f.dataset.started='1';
+    f.closest('.panel').querySelector('.loading')?.classList.remove('hide');
+    f.src=freshUrl(f.dataset.baseSrc);
+  }
+}
+function activate(id){
+  tabs.forEach(t=>t.classList.toggle('active',t.dataset.panel===id));
+  panels.forEach(p=>p.classList.toggle('active',p.id===id));
+  document.getElementById('status').textContent='Đang mở: '+names[id];
+  try{localStorage.setItem('vtcb-portal-tab',id)}catch(_){ }
+  if(id==='enterprise')loadEnterprise(false);
+}
+tabs.forEach(t=>t.addEventListener('click',()=>activate(t.dataset.panel)));
+document.querySelectorAll('iframe').forEach(f=>f.addEventListener('load',()=>f.closest('.panel').querySelector('.loading')?.classList.add('hide')));
+document.getElementById('reload').onclick=()=>{
+  const p=document.querySelector('.panel.active');
+  p.querySelector('.loading')?.classList.remove('hide');
+  if(p.id==='enterprise'){loadEnterprise(true);return}
+  const f=p.querySelector('iframe');if(f)f.src=f.src;
+};
+try{const saved=localStorage.getItem('vtcb-portal-tab');if(saved&&names[saved])activate(saved)}catch(_){ }
 </script>
-</body></html>
+</body>
+</html>
