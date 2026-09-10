@@ -6,7 +6,12 @@ function includeApp2_(name) {
 }
 
 function renderApp2_(view) {
-  var file = view === 'school' ? 'App2_School' : 'App2_Portal';
+  var map = {
+    school: 'App2_School',
+    enterprise: 'App2_Enterprise',
+    app2: 'App2_Portal'
+  };
+  var file = map[String(view || 'app2').toLowerCase()] || 'App2_Portal';
   var tpl = HtmlService.createTemplateFromFile(file);
   tpl.appUrl = ScriptApp.getService().getUrl();
   return tpl.evaluate()
@@ -18,6 +23,6 @@ function renderApp2_(view) {
 // TICH HOP VAO doGet(e) HIEN CO CUA APP 1:
 // Dat 2 dong nay LEN DAU HAM doGet(e), truoc logic cu cua App 1:
 // var v = String((e && e.parameter && e.parameter.view) || '').toLowerCase();
-// if (v === 'app2' || v === 'school') return renderApp2_(v);
+// if (v === 'app2' || v === 'school' || v === 'enterprise') return renderApp2_(v);
 //
 // Cac view cu (kpi, report, plan, login, admin...) giu NGUYEN logic hien tai.
