@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#e80500">
+<title>Tiếp xúc Doanh nghiệp - Viettel Cao Bằng</title>
+<style>
+:root{--r:#e80500;--r2:#c90400;--d:#40474b;--bg:#f3f5f6;--line:#e4e7e9}*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:Calibri,Arial,sans-serif;background:var(--bg);color:var(--d)}body{overflow:hidden}.top{height:58px;background:linear-gradient(90deg,var(--r),var(--r2));color:#fff;display:flex;align-items:center;gap:10px;padding:0 10px;box-shadow:0 2px 8px #0002}.back{border:1px solid #fff;background:#fff;color:var(--r);border-radius:8px;padding:8px 10px;font-weight:900;cursor:pointer}.brand{font-weight:900}.stage{height:calc(100vh - 58px);position:relative}.frame{width:100%;height:100%;border:0;background:#fff}.loading{position:absolute;inset:0;display:grid;place-items:center;background:var(--bg);z-index:2}.loading.hide{display:none}.box{background:#fff;border:1px solid var(--line);border-radius:12px;padding:17px 22px;box-shadow:0 3px 12px #0001;font-weight:800}.fallback{position:absolute;right:10px;bottom:10px;background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 10px;box-shadow:0 2px 10px #0002;font-size:11px;z-index:3}.fallback a{color:var(--r);font-weight:800}@media(max-width:700px){.top{height:54px}.stage{height:calc(100vh - 54px)}.back{font-size:0;min-width:36px}.back:before{content:'←';font-size:20px}}
+</style>
+</head>
+<body>
+<header class="top"><button id="back" class="back">← QUAY LẠI</button><div class="brand">VIETTEL CAO BẰNG · TIẾP XÚC DOANH NGHIỆP</div></header>
+<main class="stage">
+<div class="loading" id="loading"><div class="box">Đang nạp dữ liệu Doanh nghiệp...</div></div>
+<iframe id="enterpriseFrame" class="frame" title="Tiếp xúc Doanh nghiệp" data-src="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+<div class="fallback">Nếu trình duyệt chặn khung: <a href="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" target="_blank" rel="noopener">mở trực tiếp</a></div>
+</main>
+<script>
+const APP='<?= appUrl ?>',f=document.getElementById('enterpriseFrame');
+document.getElementById('back').onclick=()=>location.href=APP+'?view=app2';
+f.addEventListener('load',()=>document.getElementById('loading').classList.add('hide'),{passive:true});
+requestAnimationFrame(()=>{f.src=f.dataset.src});
+</script>
+</body>
+</html>
