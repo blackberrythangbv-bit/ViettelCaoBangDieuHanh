@@ -7,7 +7,7 @@
 <title>Điều hành Viettel Cao Bằng</title>
 <script>
 (function(){
-  const APP='https://script.google.com/macros/s/AKfycbxm1qZ1c54lRmxFRALgAhsHYsD2AEi1UBivOaVNLHmKofyoLFBGckmtnlCVE-L_BLDalQ/exec';
+  const APP='https://script.google.com/macros/s/AKfycbxwDT_LV1D49SKfZkv0_CfmBcRcpubbJGnd9TFBL5b1y0AHQ-a1zbRQf83CBWDeRkaApQ/exec';
   const open=new URLSearchParams(location.search).get('open');
   if(open!=='school'&&open!=='enterprise') location.replace(APP);
 })();
@@ -17,7 +17,7 @@
 </style>
 </head>
 <body>
-<header class="top"><button id="back" class="back">← QUAY LẠI KPI</button><div class="brand"><div class="logo">VIETTEL CAO BẰNG</div><div class="title"><b>ĐIỀU HÀNH KHDN</b><span>Trường học và DN chỉ nạp khi bấm</span></div></div></header>
+<header class="top"><button id="back" class="back" aria-label="Quay lại">← QUAY LẠI</button><div class="brand"><div class="logo">VIETTEL CAO BẰNG</div><div class="title"><b>ĐIỀU HÀNH KHDN</b><span>Giữ nguyên App Web 1 • Trường học và DN chỉ nạp khi bấm</span></div></div></header>
 <nav class="tabs">
 <a class="tab" id="kpiLink">📊 KPI</a><a class="tab" id="reportLink">📋 BÁO CÁO NGÀY</a><a class="tab" id="planLink">📅 KH TUẦN</a><button class="tab" data-open="school">🏫 TRƯỜNG HỌC</button><button class="tab" data-open="enterprise">🏢 TIẾP XÚC DN</button>
 </nav>
@@ -26,14 +26,14 @@
 <section id="enterprise" class="panel"><div class="loading"><div class="box">Đang nạp Tiếp xúc DN...</div></div><iframe class="frame" title="Tiếp xúc DN" data-src="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="fallback">Nếu trình duyệt chặn khung: <a href="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" target="_blank" rel="noopener">mở trực tiếp</a></div></section>
 </main>
 <script>
-const APP='https://script.google.com/macros/s/AKfycbxm1qZ1c54lRmxFRALgAhsHYsD2AEi1UBivOaVNLHmKofyoLFBGckmtnlCVE-L_BLDalQ/exec';
+const APP='https://script.google.com/macros/s/AKfycbxwDT_LV1D49SKfZkv0_CfmBcRcpubbJGnd9TFBL5b1y0AHQ-a1zbRQf83CBWDeRkaApQ/exec';
 const URLS={kpi:APP+'?view=kpi',report:APP+'?view=report',plan:APP+'?view=plan'};
 document.getElementById('kpiLink').href=URLS.kpi;document.getElementById('reportLink').href=URLS.report;document.getElementById('planLink').href=URLS.plan;
 let current='';
 function unload(id){const p=document.getElementById(id),f=p&&p.querySelector('iframe');if(!f)return;f.src='about:blank';delete f.dataset.started;p.querySelector('.loading')?.classList.remove('hide')}
 function openPanel(id){if(id!=='school'&&id!=='enterprise')return;if(current&&current!==id)unload(current);current=id;document.querySelectorAll('.panel').forEach(p=>p.classList.toggle('active',p.id===id));document.querySelectorAll('[data-open]').forEach(b=>b.classList.toggle('active',b.dataset.open===id));const p=document.getElementById(id),f=p.querySelector('iframe');if(!f.dataset.started){f.dataset.started='1';f.src=f.dataset.src}}
-function backKpi(){if(current)unload(current);location.href=URLS.kpi}
-document.getElementById('back').onclick=backKpi;document.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openPanel(b.dataset.open));document.querySelectorAll('iframe').forEach(f=>f.addEventListener('load',()=>{if(f.src==='about:blank')return;const p=f.closest('.panel');p.querySelector('.loading')?.classList.add('hide');if(p.id==='school'){try{const d=f.contentDocument;if(d&&!d.documentElement.dataset.schoolEnhanceV2){d.documentElement.dataset.schoolEnhanceV2='1';const s=d.createElement('script');s.src='./school-enhance-v2.js?v=6';s.async=true;d.body.appendChild(s)}}catch(e){}}}));
+function goBack(){if(current){unload(current);current='';location.href=URLS.kpi;return}if(history.length>1){history.back();return}location.href=URLS.kpi}
+document.getElementById('back').onclick=goBack;document.querySelectorAll('[data-open]').forEach(b=>b.onclick=()=>openPanel(b.dataset.open));document.querySelectorAll('iframe').forEach(f=>f.addEventListener('load',()=>{if(f.src==='about:blank')return;const p=f.closest('.panel');p.querySelector('.loading')?.classList.add('hide');if(p.id==='school'){try{const d=f.contentDocument;if(d&&!d.documentElement.dataset.schoolEnhanceV2){d.documentElement.dataset.schoolEnhanceV2='1';const s=d.createElement('script');s.src='./school-enhance-v2.js?v=6';s.async=true;d.body.appendChild(s)}}catch(e){}}}));
 const initial=new URLSearchParams(location.search).get('open');if(initial==='school'||initial==='enterprise')openPanel(initial);
 </script>
 </body></html>
