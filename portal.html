@@ -8,44 +8,89 @@
 <link rel="preconnect" href="https://script.google.com">
 <link rel="preconnect" href="https://script.googleusercontent.com">
 <style>
-:root{--r:#e80500;--r2:#c90400;--d:#40474b;--bg:#f3f5f6;--line:#e4e7e9;--muted:#747b80}*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:Calibri,Arial,sans-serif;background:var(--bg);color:var(--d)}body{overflow:hidden}.top{height:62px;background:linear-gradient(90deg,var(--r),var(--r2));color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 16px;box-shadow:0 2px 8px #0002;position:relative;z-index:20}.brand{display:flex;align-items:center;gap:11px;min-width:0}.logo{font-weight:900;border:1px solid #fff;border-radius:7px;padding:5px 9px;white-space:nowrap}.title{min-width:0}.title b{display:block;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.title span{display:block;font-size:11px;opacity:.9;margin-top:2px}.reload{border:1px solid #ffffff66;color:#fff;background:#ffffff12;border-radius:8px;padding:8px 11px;font-weight:800;cursor:pointer}.tabs{height:56px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:6px;padding:7px 10px;position:relative;z-index:15;box-shadow:0 1px 4px #0001;overflow-x:auto}.tab{border:1px solid var(--line);background:#f7f8f8;color:var(--d);border-radius:8px;padding:9px 11px;font-weight:800;cursor:pointer;white-space:nowrap}.tab.active{background:var(--r);border-color:var(--r);color:#fff}.status{margin-left:auto;font-size:11px;color:var(--muted);white-space:nowrap}.stage{height:calc(100vh - 118px);position:relative}.panel{position:absolute;inset:0;display:none}.panel.active{display:block}.frame{width:100%;height:100%;border:0;background:#fff;display:block}.loading{position:absolute;inset:0;display:grid;place-items:center;background:#f3f5f6;z-index:2;pointer-events:none;transition:.18s}.loading.hide{opacity:0;visibility:hidden}.loadbox{background:#fff;border:1px solid var(--line);border-radius:11px;padding:16px 22px;box-shadow:0 3px 12px #0001;font-weight:800}.fallback{position:absolute;right:10px;bottom:10px;z-index:4;background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 10px;box-shadow:0 2px 10px #0002;font-size:11px}.fallback a{color:var(--r);font-weight:800;text-decoration:none}.fallback.dns{left:10px;right:auto;max-width:420px}.fallback.dns b{display:block;margin-bottom:3px}@media(max-width:760px){.top{height:58px;padding:0 9px}.logo{font-size:11px;padding:4px 6px}.title b{font-size:14px}.title span,.reload,.status{display:none}.tabs{height:54px;padding:6px}.tab{font-size:11.5px;padding:9px}.stage{height:calc(100vh - 112px)}.fallback.dns{display:none}}
+:root{--r:#e80500;--r2:#c90400;--d:#40474b;--bg:#f3f5f6;--line:#e4e7e9;--muted:#747b80}
+*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:Calibri,Arial,sans-serif;background:var(--bg);color:var(--d)}body{overflow:hidden}
+.top{height:62px;background:linear-gradient(90deg,var(--r),var(--r2));color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 12px;box-shadow:0 2px 8px #0002;position:relative;z-index:20}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}.logo{font-weight:900;border:1px solid #fff;border-radius:7px;padding:5px 9px;white-space:nowrap}.title{min-width:0}.title b{display:block;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.title span{display:block;font-size:11px;opacity:.9;margin-top:2px}
+.actions{display:flex;gap:7px;align-items:center}.topbtn{border:1px solid #ffffff66;color:#fff;background:#ffffff12;border-radius:8px;padding:8px 10px;font-weight:800;cursor:pointer;white-space:nowrap}.topbtn.back{display:none;background:#fff;color:var(--r);border-color:#fff}.topbtn.back.show{display:inline-block}
+.tabs{height:56px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:6px;padding:7px 10px;position:relative;z-index:15;box-shadow:0 1px 4px #0001;overflow-x:auto}.tab{border:1px solid var(--line);background:#f7f8f8;color:var(--d);border-radius:8px;padding:9px 11px;font-weight:800;cursor:pointer;white-space:nowrap}.tab.active{background:var(--r);border-color:var(--r);color:#fff}.status{margin-left:auto;font-size:11px;color:var(--muted);white-space:nowrap}
+.stage{height:calc(100vh - 118px);position:relative}.panel{position:absolute;inset:0;display:none}.panel.active{display:block}.frame{width:100%;height:100%;border:0;background:#fff;display:block}.loading{position:absolute;inset:0;display:grid;place-items:center;background:#f3f5f6;z-index:2;pointer-events:none;transition:.18s}.loading.hide{opacity:0;visibility:hidden}.loadbox{background:#fff;border:1px solid var(--line);border-radius:11px;padding:16px 22px;box-shadow:0 3px 12px #0001;font-weight:800}.fallback{position:absolute;right:10px;bottom:10px;z-index:4;background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 10px;box-shadow:0 2px 10px #0002;font-size:11px}.fallback a{color:var(--r);font-weight:800;text-decoration:none}.fallback.dns{left:10px;right:auto;max-width:420px}.fallback.dns b{display:block;margin-bottom:3px}
+.mobile-launch{display:none;position:absolute;inset:0;place-items:center;padding:22px;background:var(--bg)}.launch-card{width:min(560px,94vw);background:#fff;border:1px solid var(--line);border-radius:16px;padding:24px;box-shadow:0 4px 18px #0002;text-align:center}.launch-icon{font-size:48px}.launch-card h2{margin:8px 0 6px}.launch-card p{margin:0 0 16px;color:var(--muted)}.launch-btn{border:0;border-radius:10px;background:var(--r);color:#fff;padding:12px 20px;font-weight:900;font-size:15px;cursor:pointer}
+@media(max-width:760px){.top{height:58px;padding:0 8px}.logo{font-size:11px;padding:4px 6px}.title b{font-size:14px}.title span,.status,.topbtn.reload{display:none}.topbtn{padding:7px 9px;font-size:12px}.tabs{height:54px;padding:6px}.tab{font-size:11.5px;padding:9px}.stage{height:calc(100vh - 112px)}.fallback.dns{display:none}.mobile-launch{display:grid}}
 </style>
 </head>
 <body>
-<header class="top"><div class="brand"><div class="logo">VIETTEL CAO BẰNG</div><div class="title"><b>ĐIỀU HÀNH KHDN</b><span>Một cửa vào · 5 module · tải theo nhu cầu</span></div></div><button id="reload" class="reload">↻ TẢI LẠI</button></header>
+<header class="top">
+  <div class="brand"><div class="logo">VIETTEL CAO BẰNG</div><div class="title"><b>ĐIỀU HÀNH KHDN</b><span>Màn hình chính KPI · module khác chỉ nạp khi sử dụng</span></div></div>
+  <div class="actions"><button id="back" class="topbtn back">← QUAY LẠI KPI</button><button id="reload" class="topbtn reload">↻ TẢI LẠI</button></div>
+</header>
 <nav class="tabs">
-<button class="tab active" data-panel="school">🏫 TRƯỜNG HỌC</button>
-<button class="tab" data-panel="enterprise">🏢 TIẾP XÚC DN</button>
-<button class="tab" data-panel="kpi">📊 KPI</button>
-<button class="tab" data-panel="report">📋 BÁO CÁO NGÀY</button>
-<button class="tab" data-panel="plan">📅 KH TUẦN</button>
-<div id="status" class="status">Đang mở: Trường học</div>
+  <button class="tab active" data-panel="kpi">📊 KPI</button>
+  <button class="tab" data-panel="report">📋 BÁO CÁO NGÀY</button>
+  <button class="tab" data-panel="plan">📅 KH TUẦN</button>
+  <button class="tab" data-panel="school">🏫 TRƯỜNG HỌC</button>
+  <button class="tab" data-panel="enterprise">🏢 TIẾP XÚC DN</button>
+  <div id="status" class="status">Màn hình chính: KPI</div>
 </nav>
 <main class="stage">
-<section class="panel active" id="school"><div class="loading"><div class="loadbox">Đang nạp Trường học...</div></div><iframe class="frame" title="Tiếp xúc trường học" src="./" loading="eager"></iframe></section>
-<section class="panel" id="enterprise"><div class="loading"><div class="loadbox">Đang nạp Tiếp xúc DN...</div></div><iframe class="frame" title="Tiếp xúc DN" data-src="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="fallback"><a href="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" target="_blank" rel="noopener">Mở trực tiếp</a></div></section>
-<section class="panel" id="kpi"><div class="loading"><div class="loadbox">Đang nạp KPI...</div></div><iframe class="frame" title="KPI" data-src="https://script.google.com/macros/s/AKfycbxm1qZ1c54lRmxFRALgAhsHYsD2AEi1UBivOaVNLHmKofyoLFBGckmtnlCVE-L_BLDalQ/exec?view=kpi" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="fallback dns"><b>Nếu trình duyệt chặn Google Apps Script trong khung:</b><a href="https://script.google.com/macros/s/AKfycbxm1qZ1c54lRmxFRALgAhsHYsD2AEi1UBivOaVNLHmKofyoLFBGckmtnlCVE-L_BLDalQ/exec?view=kpi">Mở KPI trực tiếp</a></div></section>
-<section class="panel" id="report"><div class="loading"><div class="loadbox">Đang nạp Báo cáo KPI ngày...</div></div><iframe class="frame" title="Báo cáo KPI ngày" data-src="https://script.google.com/macros/s/AKfycbxm1qZ1c54lRmxFRALgAhsHYsD2AEi1UBivOaVNLHmKofyoLFBGckmtnlCVE-L_BLDalQ/exec?view=report" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="fallback dns"><b>Nếu trình duyệt chặn Google Apps Script trong khung:</b><a href="https://script.google.com/macros/s/AKfycbxm1qZ1c54lRmxFRALgAhsHYsD2AEi1UBivOaVNLHmKofyoLFBGckmtnlCVE-L_BLDalQ/exec?view=report">Mở Báo cáo ngày trực tiếp</a></div></section>
-<section class="panel" id="plan"><div class="loading"><div class="loadbox">Đang nạp Kế hoạch tuần...</div></div><iframe class="frame" title="Kế hoạch tuần" data-src="https://script.google.com/macros/s/AKfycbxm1qZ1c54lRmxFRALgAhsHYsD2AEi1UBivOaVNLHmKofyoLFBGckmtnlCVE-L_BLDalQ/exec?view=plan" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="fallback dns"><b>Nếu trình duyệt chặn Google Apps Script trong khung:</b><a href="https://script.google.com/macros/s/AKfycbxm1qZ1c54lRmxFRALgAhsHYsD2AEi1UBivOaVNLHmKofyoLFBGckmtnlCVE-L_BLDalQ/exec?view=plan">Mở KH tuần trực tiếp</a></div></section>
+  <section class="panel active" id="kpi">
+    <div class="loading"><div class="loadbox">Đang nạp KPI...</div></div>
+    <iframe class="frame" title="KPI" data-src="https://script.google.com/macros/s/AKfycbxm1qZ1c54lRmxFRALgAhsHYsD2AEi1UBivOaVNLHmKofyoLFBGckmtnlCVE-L_BLDalQ/exec?view=kpi" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    <div class="mobile-launch"><div class="launch-card"><div class="launch-icon">📊</div><h2>KPI</h2><p>Màn hình chính. Trên điện thoại, KPI mở trực tiếp để tránh lỗi chặn iframe của Google Apps Script.</p><button class="launch-btn" data-open-direct="kpi">MỞ KPI</button></div></div>
+    <div class="fallback dns"><b>Nếu trình duyệt chặn Google Apps Script trong khung:</b><a data-direct="kpi" href="#">Mở KPI trực tiếp</a></div>
+  </section>
+  <section class="panel" id="report">
+    <div class="loading"><div class="loadbox">Đang nạp Báo cáo KPI ngày...</div></div>
+    <iframe class="frame" title="Báo cáo KPI ngày" data-src="https://script.google.com/macros/s/AKfycbxm1qZ1c54lRmxFRALgAhsHYsD2AEi1UBivOaVNLHmKofyoLFBGckmtnlCVE-L_BLDalQ/exec?view=report" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    <div class="mobile-launch"><div class="launch-card"><div class="launch-icon">📋</div><h2>Báo cáo KPI ngày</h2><p>Mở trực tiếp trên điện thoại để bảo đảm ổn định.</p><button class="launch-btn" data-open-direct="report">MỞ BÁO CÁO NGÀY</button></div></div>
+    <div class="fallback dns"><b>Nếu trình duyệt chặn Google Apps Script trong khung:</b><a data-direct="report" href="#">Mở Báo cáo ngày trực tiếp</a></div>
+  </section>
+  <section class="panel" id="plan">
+    <div class="loading"><div class="loadbox">Đang nạp Kế hoạch tuần...</div></div>
+    <iframe class="frame" title="Kế hoạch tuần" data-src="https://script.google.com/macros/s/AKfycbxm1qZ1c54lRmxFRALgAhsHYsD2AEi1UBivOaVNLHmKofyoLFBGckmtnlCVE-L_BLDalQ/exec?view=plan" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    <div class="mobile-launch"><div class="launch-card"><div class="launch-icon">📅</div><h2>Kế hoạch tuần</h2><p>Mở trực tiếp trên điện thoại để bảo đảm ổn định.</p><button class="launch-btn" data-open-direct="plan">MỞ KẾ HOẠCH TUẦN</button></div></div>
+    <div class="fallback dns"><b>Nếu trình duyệt chặn Google Apps Script trong khung:</b><a data-direct="plan" href="#">Mở KH tuần trực tiếp</a></div>
+  </section>
+  <section class="panel" id="school">
+    <div class="loading"><div class="loadbox">Đang nạp Trường học...</div></div>
+    <iframe class="frame" title="Tiếp xúc trường học" data-src="./index.html" loading="lazy"></iframe>
+  </section>
+  <section class="panel" id="enterprise">
+    <div class="loading"><div class="loadbox">Đang nạp Tiếp xúc DN...</div></div>
+    <iframe class="frame" title="Tiếp xúc DN" data-src="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+    <div class="fallback"><a href="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" target="_blank" rel="noopener">Mở trực tiếp</a></div>
+  </section>
 </main>
 <script>
-const names={school:'Trường học',enterprise:'Tiếp xúc DN',kpi:'KPI',report:'Báo cáo KPI ngày',plan:'Kế hoạch tuần'};
+const names={kpi:'KPI',report:'Báo cáo KPI ngày',plan:'Kế hoạch tuần',school:'Trường học',enterprise:'Tiếp xúc DN'};
 const DNS_URLS={
- kpi:'https://script.google.com/macros/s/AKfycbxm1qZ1c54lRmxFRALgAhsHYsD2AEi1UBivOaVNLHmKofyoLFBGckmtnlCVE-L_BLDalQ/exec?view=kpi',
- report:'https://script.google.com/macros/s/AKfycbxm1qZ1c54lRmxFRALgAhsHYsD2AEi1UBivOaVNLHmKofyoLFBGckmtnlCVE-L_BLDalQ/exec?view=report',
- plan:'https://script.google.com/macros/s/AKfycbxm1qZ1c54lRmxFRALgAhsHYsD2AEi1UBivOaVNLHmKofyoLFBGckmtnlCVE-L_BLDalQ/exec?view=plan'
+  kpi:'https://script.google.com/macros/s/AKfycbxm1qZ1c54lRmxFRALgAhsHYsD2AEi1UBivOaVNLHmKofyoLFBGckmtnlCVE-L_BLDalQ/exec?view=kpi',
+  report:'https://script.google.com/macros/s/AKfycbxm1qZ1c54lRmxFRALgAhsHYsD2AEi1UBivOaVNLHmKofyoLFBGckmtnlCVE-L_BLDalQ/exec?view=report',
+  plan:'https://script.google.com/macros/s/AKfycbxm1qZ1c54lRmxFRALgAhsHYsD2AEi1UBivOaVNLHmKofyoLFBGckmtnlCVE-L_BLDalQ/exec?view=plan'
 };
-const tabs=[...document.querySelectorAll('.tab')],panels=[...document.querySelectorAll('.panel')];let warmTimer=0;
-function isMobileOrWebView(){const ua=navigator.userAgent||'';return /Android|iPhone|iPad|iPod|wv\)|; wv|FBAN|FBAV|Zalo/i.test(ua)||window.matchMedia('(pointer:coarse)').matches&&window.innerWidth<1000}
+const tabs=[...document.querySelectorAll('.tab')],panels=[...document.querySelectorAll('.panel')];
+let current='kpi',warmTimer=0;
+function isMobileOrWebView(){const ua=navigator.userAgent||'';return /Android|iPhone|iPad|iPod|wv\)|; wv|FBAN|FBAV|Zalo/i.test(ua)||((window.matchMedia('(pointer:coarse)').matches)&&window.innerWidth<1000)}
 function forceUrl(base){return base+(base.includes('?')?'&':'?')+'_portalts='+Date.now()}
-function loadPanel(id,force=false){const p=document.getElementById(id),f=p?.querySelector('iframe');if(!f)return;if(id==='school'){if(force){p.querySelector('.loading')?.classList.remove('hide');f.src=forceUrl('./')}return}if(force||!f.dataset.started){f.dataset.started='1';p.querySelector('.loading')?.classList.remove('hide');f.src=force?forceUrl(f.dataset.src):f.dataset.src}}
-function enhanceSchool(f){try{const d=f.contentDocument;if(!d||d.documentElement.dataset.schoolEnhanceV2==='1')return;d.documentElement.dataset.schoolEnhanceV2='1';const s=d.createElement('script');s.src='./school-enhance-v2.js?v=3';s.async=true;d.body.appendChild(s)}catch(e){console.warn('Không nạp được phần mở rộng Trường học',e)}}
-function activate(id){if(!names[id])return;if(DNS_URLS[id]&&isMobileOrWebView()){try{sessionStorage.setItem('vtcb-portal-return','school')}catch(_){}window.location.assign(DNS_URLS[id]);return}tabs.forEach(t=>t.classList.toggle('active',t.dataset.panel===id));panels.forEach(p=>p.classList.toggle('active',p.id===id));document.getElementById('status').textContent='Đang mở: '+names[id];loadPanel(id,false);try{sessionStorage.setItem('vtcb-portal-tab-v3',id)}catch(_){}}
-function warm(id){if(id==='school'||DNS_URLS[id]&&isMobileOrWebView())return;clearTimeout(warmTimer);warmTimer=setTimeout(()=>loadPanel(id,false),220)}
-tabs.forEach(t=>{t.addEventListener('click',()=>activate(t.dataset.panel));t.addEventListener('pointerenter',()=>warm(t.dataset.panel));t.addEventListener('pointerleave',()=>clearTimeout(warmTimer));if(!DNS_URLS[t.dataset.panel])t.addEventListener('touchstart',()=>loadPanel(t.dataset.panel,false),{passive:true})});
-document.querySelectorAll('iframe').forEach(f=>f.addEventListener('load',()=>{f.closest('.panel')?.querySelector('.loading')?.classList.add('hide');if(f.closest('.panel')?.id==='school')enhanceSchool(f)}));
-document.getElementById('reload').onclick=()=>{const p=document.querySelector('.panel.active');if(p)loadPanel(p.id,true)};
-try{const saved=sessionStorage.getItem('vtcb-portal-tab-v3');if(saved&&names[saved]&&!DNS_URLS[saved])activate(saved)}catch(_){ }
+function loadPanel(id,force=false){
+  const p=document.getElementById(id),f=p?.querySelector('iframe');if(!p||!f)return;
+  if(DNS_URLS[id]&&isMobileOrWebView()){p.querySelector('.loading')?.classList.add('hide');return}
+  if(force||!f.dataset.started){f.dataset.started='1';p.querySelector('.loading')?.classList.remove('hide');const base=f.dataset.src;if(base)f.src=force?forceUrl(base):base}
+}
+function unloadPanel(id){const p=document.getElementById(id),f=p?.querySelector('iframe');if(!f)return;if(id==='kpi'&&!isMobileOrWebView())return;f.src='about:blank';delete f.dataset.started;p?.querySelector('.loading')?.classList.remove('hide')}
+function enhanceSchool(f){try{const d=f.contentDocument;if(!d||d.documentElement.dataset.schoolEnhanceV2==='1')return;d.documentElement.dataset.schoolEnhanceV2='1';const s=d.createElement('script');s.src='./school-enhance-v2.js?v=4';s.async=true;d.body.appendChild(s)}catch(e){console.warn('Không nạp được phần mở rộng Trường học',e)}}
+function setActive(id){current=id;tabs.forEach(t=>t.classList.toggle('active',t.dataset.panel===id));panels.forEach(p=>p.classList.toggle('active',p.id===id));document.getElementById('status').textContent=id==='kpi'?'Màn hình chính: KPI':'Đang mở: '+names[id];document.getElementById('back').classList.toggle('show',id!=='kpi')}
+function activate(id){if(!names[id])return;setActive(id);loadPanel(id,false)}
+function backToKpi(){if(current!=='kpi')unloadPanel(current);setActive('kpi');loadPanel('kpi',false)}
+function warm(id){if(id==='school'||id==='enterprise'||DNS_URLS[id]&&isMobileOrWebView())return;clearTimeout(warmTimer);warmTimer=setTimeout(()=>loadPanel(id,false),220)}
+function openDirect(id){const url=DNS_URLS[id];if(!url)return;window.open(url,'_blank','noopener')}
+tabs.forEach(t=>{t.addEventListener('click',()=>activate(t.dataset.panel));t.addEventListener('pointerenter',()=>warm(t.dataset.panel));t.addEventListener('pointerleave',()=>clearTimeout(warmTimer))});
+document.querySelectorAll('[data-open-direct]').forEach(b=>b.addEventListener('click',()=>openDirect(b.dataset.openDirect)));
+document.querySelectorAll('[data-direct]').forEach(a=>a.addEventListener('click',e=>{e.preventDefault();openDirect(a.dataset.direct)}));
+document.querySelectorAll('iframe').forEach(f=>f.addEventListener('load',()=>{const p=f.closest('.panel');p?.querySelector('.loading')?.classList.add('hide');if(p?.id==='school'&&f.src!=='about:blank')enhanceSchool(f)}));
+document.getElementById('back').onclick=backToKpi;
+document.getElementById('reload').onclick=()=>loadPanel(current,true);
+setActive('kpi');loadPanel('kpi',false);
 </script>
 </body>
 </html>
