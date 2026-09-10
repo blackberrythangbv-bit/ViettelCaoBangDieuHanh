@@ -18,7 +18,7 @@
 </main>
 <script>
 const APP='<?= appUrl ?>',f=document.getElementById('enterpriseFrame');
-document.getElementById('back').onclick=()=>location.href=APP+'?view=app2';
+document.getElementById('back').onclick=()=>{if(window.parent!==window)window.parent.postMessage({type:'APP2_NAV',view:'kpi'},'*');else location.href=APP+'?view=app2'};
 f.addEventListener('load',()=>document.getElementById('loading').classList.add('hide'),{passive:true});
 requestAnimationFrame(()=>{f.src=f.dataset.src});
 </script>
