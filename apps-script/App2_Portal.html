@@ -6,26 +6,44 @@
 <meta name="theme-color" content="#e80500">
 <title>Điều hành Viettel Cao Bằng</title>
 <style>
-:root{--r:#e80500;--r2:#c90400;--d:#40474b;--bg:#f3f5f6;--line:#e4e7e9}*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:Calibri,Arial,sans-serif;background:var(--bg);color:var(--d)}body{overflow:hidden}.top{height:62px;background:linear-gradient(90deg,var(--r),var(--r2));color:#fff;display:flex;align-items:center;gap:9px;padding:0 12px;box-shadow:0 2px 8px #0002}.back{border:1px solid #fff;background:#fff;color:var(--r);border-radius:8px;padding:8px 10px;font-weight:900;cursor:pointer;white-space:nowrap}.brand{display:flex;align-items:center;gap:10px;min-width:0}.logo{font-weight:900;border:1px solid #fff;border-radius:7px;padding:5px 9px;white-space:nowrap}.title b{display:block;font-size:17px}.title span{display:block;font-size:11px;opacity:.9}.tabs{height:56px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:6px;padding:7px 10px;overflow-x:auto;box-shadow:0 1px 4px #0001}.tab{border:1px solid var(--line);background:#f7f8f8;color:var(--d);border-radius:8px;padding:9px 11px;font-weight:800;cursor:pointer;white-space:nowrap;text-decoration:none}.tab.active{background:var(--r);border-color:var(--r);color:#fff}.stage{height:calc(100vh - 118px);position:relative}.panel{position:absolute;inset:0;display:none}.panel.active{display:block}.frame{width:100%;height:100%;border:0;background:#fff}.loading{position:absolute;inset:0;display:grid;place-items:center;background:var(--bg);z-index:2}.loading.hide{display:none}.box{background:#fff;border:1px solid var(--line);border-radius:12px;padding:17px 22px;box-shadow:0 3px 12px #0001;font-weight:800}.fallback{position:absolute;right:10px;bottom:10px;background:#fff;border:1px solid var(--line);border-radius:9px;padding:8px 10px;box-shadow:0 2px 10px #0002;font-size:11px;z-index:3}.fallback a{color:var(--r);font-weight:800}@media(max-width:760px){.top{height:58px;padding:0 8px}.back{font-size:0;min-width:36px;padding:7px 8px}.back:before{content:'←';font-size:20px}.logo{font-size:11px;padding:4px 6px}.title b{font-size:14px}.title span{display:none}.tabs{height:54px;padding:6px}.tab{font-size:11.5px;padding:9px}.stage{height:calc(100vh - 112px)}}
+:root{--r:#e80500;--r2:#c90400;--d:#40474b;--bg:#f3f5f6;--line:#e4e7e9;--txt:#30363a;--muted:#747b80}
+*{box-sizing:border-box}html,body{margin:0;height:100%;font-family:Calibri,Arial,sans-serif;background:var(--bg);color:var(--txt)}body{overflow:hidden}
+.top{height:60px;background:linear-gradient(90deg,var(--r),var(--r2));color:#fff;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 12px;box-shadow:0 2px 8px #0002;position:relative;z-index:20}
+.brand{display:flex;align-items:center;gap:10px;min-width:0}.logo{font-weight:900;border:1px solid #fff;border-radius:7px;padding:5px 9px;white-space:nowrap}.title{min-width:0}.title b{display:block;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.title span{display:block;font-size:11px;opacity:.9;margin-top:2px}.actions{display:flex;gap:6px}.iconbtn{border:1px solid #ffffff66;color:#fff;background:#ffffff12;border-radius:8px;padding:8px 10px;font-weight:800;cursor:pointer;white-space:nowrap}
+.tabs{height:56px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:6px;padding:7px 10px;overflow-x:auto;box-shadow:0 1px 4px #0001;position:relative;z-index:19}.tab{border:1px solid var(--line);background:#f7f8f8;color:var(--d);border-radius:8px;padding:9px 11px;font-weight:800;cursor:pointer;white-space:nowrap;min-width:max-content}.tab.active{background:var(--r);border-color:var(--r);color:#fff;box-shadow:0 2px 7px #e8050030}.tab:active{transform:scale(.98)}
+.stage{height:calc(100vh - 116px);position:relative;background:var(--bg)}.panel{position:absolute;inset:0;visibility:hidden;pointer-events:none;contain:layout paint style}.panel.active{visibility:visible;pointer-events:auto}.frame{width:100%;height:100%;border:0;background:#fff;display:block}.loading{position:absolute;inset:0;display:grid;place-items:center;background:var(--bg);z-index:2;pointer-events:none}.loading.hide{display:none}.box{background:#fff;border:1px solid var(--line);border-radius:12px;padding:17px 22px;box-shadow:0 3px 12px #0001;font-weight:800;color:var(--d)}
+@media(max-width:760px){.top{height:56px;padding:0 8px}.logo{font-size:11px;padding:4px 6px}.title b{font-size:14px}.title span{display:none}.actions .homeText{display:none}.tabs{height:52px;padding:5px 6px}.tab{font-size:11.5px;padding:8px 9px}.stage{height:calc(100vh - 108px)}}
 </style>
 </head>
 <body>
-<header class="top"><button id="back" class="back">← QUAY LẠI</button><div class="brand"><div class="logo">VIETTEL CAO BẰNG</div><div class="title"><b>ĐIỀU HÀNH KHDN</b><span>App 2 chạy cùng Google Apps Script với App 1</span></div></div></header>
-<nav class="tabs">
-<a class="tab" href="<?= appUrl ?>?view=kpi">📊 KPI</a>
-<a class="tab" href="<?= appUrl ?>?view=report">📋 BÁO CÁO NGÀY</a>
-<a class="tab" href="<?= appUrl ?>?view=plan">📅 KH TUẦN</a>
-<a class="tab" href="<?= appUrl ?>?view=school">🏫 TRƯỜNG HỌC</a>
-<button class="tab" id="enterpriseBtn">🏢 TIẾP XÚC DN</button>
+<header class="top">
+  <div class="brand"><div class="logo">VIETTEL CAO BẰNG</div><div class="title"><b>ĐIỀU HÀNH KINH DOANH</b><span>Một nền tảng · KPI mặc định · Trường học/DN nạp theo yêu cầu</span></div></div>
+  <div class="actions"><button class="iconbtn" id="home">⌂ <span class="homeText">KPI</span></button><button class="iconbtn" id="reload">↻</button></div>
+</header>
+<nav class="tabs" aria-label="Chức năng điều hành">
+  <button class="tab active" data-view="kpi">📊 KPI</button>
+  <button class="tab" data-view="report">📋 BÁO CÁO NGÀY</button>
+  <button class="tab" data-view="plan">📅 KH TUẦN</button>
+  <button class="tab" data-view="school">🏫 TRƯỜNG HỌC</button>
+  <button class="tab" data-view="enterprise">🏢 DOANH NGHIỆP</button>
 </nav>
 <main class="stage">
-<section id="enterprise" class="panel"><div class="loading"><div class="box">Đang nạp Tiếp xúc DN...</div></div><iframe class="frame" title="Tiếp xúc DN" data-src="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe><div class="fallback">Nếu trình duyệt chặn khung: <a href="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" target="_blank" rel="noopener">mở trực tiếp</a></div></section>
+  <section class="panel active" id="p-kpi"><div class="loading"><div class="box">Đang nạp KPI...</div></div><iframe class="frame" title="KPI" data-src="<?= appUrl ?>?view=kpi" loading="eager"></iframe></section>
+  <section class="panel" id="p-report"><div class="loading"><div class="box">Đang nạp Báo cáo ngày...</div></div><iframe class="frame" title="Báo cáo ngày" data-src="<?= appUrl ?>?view=report" loading="lazy"></iframe></section>
+  <section class="panel" id="p-plan"><div class="loading"><div class="box">Đang nạp Kế hoạch tuần...</div></div><iframe class="frame" title="Kế hoạch tuần" data-src="<?= appUrl ?>?view=plan" loading="lazy"></iframe></section>
+  <section class="panel" id="p-school"><div class="loading"><div class="box">Đang nạp Trường học...</div></div><iframe class="frame" title="Trường học" data-src="<?= appUrl ?>?view=school" loading="lazy"></iframe></section>
+  <section class="panel" id="p-enterprise"><div class="loading"><div class="box">Đang nạp Doanh nghiệp...</div></div><iframe class="frame" title="Doanh nghiệp" data-src="<?= appUrl ?>?view=enterprise" loading="lazy"></iframe></section>
 </main>
 <script>
-const APP='<?= appUrl ?>';let opened=false;
-function back(){ if(opened){const f=document.querySelector('#enterprise iframe');f.src='about:blank';opened=false;location.href=APP+'?view=app2';return;} if(history.length>1)history.back(); else location.href=APP+'?view=kpi'; }
-document.getElementById('back').onclick=back;
-document.getElementById('enterpriseBtn').onclick=()=>{const p=document.getElementById('enterprise'),f=p.querySelector('iframe');p.classList.add('active');document.getElementById('enterpriseBtn').classList.add('active');if(!opened){opened=true;f.src=f.dataset.src}}
-document.querySelector('#enterprise iframe').addEventListener('load',()=>document.querySelector('#enterprise .loading')?.classList.add('hide'));
+const tabs=[...document.querySelectorAll('.tab')],panels=[...document.querySelectorAll('.panel')];let active='kpi';
+function frameOf(v){return document.querySelector('#p-'+v+' iframe')}
+function ensure(v,force=false){const f=frameOf(v);if(!f)return;const p=f.closest('.panel'),base=f.dataset.src;if(force){p.querySelector('.loading')?.classList.remove('hide');f.src=base+(base.includes('?')?'&':'?')+'_reload='+Date.now();f.dataset.started='1';return}if(!f.dataset.started){f.dataset.started='1';f.src=base}}
+function activate(v){if(!document.getElementById('p-'+v))return;active=v;tabs.forEach(t=>t.classList.toggle('active',t.dataset.view===v));panels.forEach(p=>p.classList.toggle('active',p.id==='p-'+v));ensure(v,false)}
+tabs.forEach(t=>t.addEventListener('click',()=>activate(t.dataset.view),{passive:true}));
+document.querySelectorAll('iframe').forEach(f=>f.addEventListener('load',()=>f.closest('.panel').querySelector('.loading')?.classList.add('hide'),{passive:true}));
+document.getElementById('home').onclick=()=>activate('kpi');
+document.getElementById('reload').onclick=()=>ensure(active,true);
+ensure('kpi',false);
 </script>
-</body></html>
+</body>
+</html>
