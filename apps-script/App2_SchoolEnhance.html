@@ -17,6 +17,7 @@
     function renderProvince(){const s=stats();province.innerHTML=[[s.assigned,'Trường đã giao AM'],[s.done,'Đã tiếp xúc'],[s.pending,'Chưa tiếp xúc'],[s.pct+'%','% hoàn thành'],[s.p1done+'/'+s.p1,'Ưu tiên 1 đã TX'],[s.risk,'Từ chối / đối thủ'],[s.consider,'Cần tái tiếp xúc']].map(x=>`<div class="pv"><b>${x[0]}</b><span>${x[1]}</span></div>`).join('')}
     function setView(view){const overview=view==='overview';[kpi,grid2,alertBox].forEach(el=>{if(el)el.style.display=overview?'':'none'});amCard.style.display=overview?'none':'';nav.querySelectorAll('.school-v2-tab').forEach(b=>b.classList.toggle('active',b.dataset.v2===view));try{sessionStorage.setItem('school-v2-tab',view)}catch(_){}if(!overview)renderProvince()}
     nav.addEventListener('click',e=>{const b=e.target.closest('[data-v2]');if(b)setView(b.dataset.v2)});const baseRender=render;render=function(){const out=baseRender.apply(this,arguments);renderProvince();return out};renderProvince();let initial='overview';try{initial=sessionStorage.getItem('school-v2-tab')||'overview'}catch(_){}setView(initial==='progress'?'progress':'overview');
+    const backBtn=document.getElementById('back');if(backBtn)backBtn.onclick=()=>{if(window.parent!==window)window.parent.postMessage({type:'APP2_NAV',view:'kpi'},'*');else location.href=(window.APP2_URL||'')+'?view=app2'};
   });
 })();
 </script>
