@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#e80500">
+  <link rel="preconnect" href="https://script.google.com">
+  <link rel="dns-prefetch" href="https://script.google.com">
+  <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+  <link rel="dns-prefetch" href="https://script.googleusercontent.com">
+  <title>Điều hành Viettel Cao Bằng</title>
+  <style>
+    :root{--red:#e80500;--red2:#c90400;--dark:#40474b;--bg:#f3f5f6;--line:#e4e7e9;--txt:#30363a;--muted:#747b80}
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;font-family:Calibri,Arial,sans-serif;color:var(--txt);background:var(--bg)}
+    body{overflow:hidden}
+    .top{height:58px;background:linear-gradient(90deg,var(--red),var(--red2));color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 14px;box-shadow:0 2px 8px #0002;position:relative;z-index:30}
+    .brand{display:flex;align-items:center;gap:10px;min-width:0}.logo{font-weight:900;border:1px solid #fff;border-radius:7px;padding:5px 9px;white-space:nowrap}.title{min-width:0}.title b{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.title span{display:block;font-size:11px;opacity:.9;margin-top:2px}.reload{border:1px solid #ffffff66;color:#fff;background:#ffffff12;border-radius:8px;padding:8px 10px;font-weight:800;cursor:pointer}
+    .tabs{height:54px;background:#fff;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:center;gap:8px;padding:6px 10px;position:relative;z-index:20;box-shadow:0 2px 8px #00000010}.tab{min-width:145px;border:1px solid var(--line);background:#f7f8f8;color:var(--dark);border-radius:9px;padding:9px 14px;font-weight:900;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;font-size:13px}.tab.active{background:var(--red);border-color:var(--red);color:#fff;box-shadow:0 2px 7px #e8050030}.tab:active{transform:scale(.98)}
+    .stage{height:calc(100vh - 112px);position:relative;background:var(--bg)}.panel{position:absolute;inset:0;visibility:hidden;pointer-events:none;contain:layout paint style}.panel.active{visibility:visible;pointer-events:auto}.frame{width:100%;height:100%;border:0;background:#fff;display:block}.loading{position:absolute;inset:0;display:grid;place-items:center;background:#f3f5f6;z-index:2;pointer-events:none}.loading.hide{display:none}.loadbox{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 22px;box-shadow:0 3px 12px #0001;font-weight:800;color:var(--dark)}
+    .fallback{position:absolute;right:10px;bottom:10px;z-index:5;background:#fff;border:1px solid var(--line);border-radius:10px;padding:8px 10px;box-shadow:0 2px 10px #0002;font-size:11px;color:var(--muted)}.fallback a{color:var(--red);font-weight:800;text-decoration:none}
+    @media(max-width:760px){.top{height:56px;padding:0 8px}.logo{font-size:11px;padding:4px 6px}.title b{font-size:12px}.title span{display:none}.reload{display:none}.tabs{height:52px;padding:5px;gap:5px}.tab{min-width:0;flex:1;padding:9px 4px;font-size:11px}.stage{height:calc(100vh - 108px)}.fallback{right:6px;bottom:6px}}
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <div class="logo">VIETTEL CAO BẰNG</div>
+      <div class="title"><b>ĐIỀU HÀNH KINH DOANH</b><span>KPI mặc định · Trường học/DN chỉ nạp khi bấm</span></div>
+    </div>
+    <button class="reload" id="reload">↻ TẢI LẠI</button>
+  </header>
+
+  <nav class="tabs" aria-label="Điều hướng">
+    <button class="tab active" data-panel="kpi">📊 KPI</button>
+    <button class="tab" data-panel="school">🏫 TRƯỜNG HỌC</button>
+    <button class="tab" data-panel="enterprise">🏢 DOANH NGHIỆP</button>
+  </nav>
+
+  <main class="stage">
+    <section class="panel active" id="kpi">
+      <div class="loading"><div class="loadbox">Đang nạp KPI...</div></div>
+      <iframe class="frame" title="KPI" data-src="?view=kpi" loading="eager"></iframe>
+    </section>
+
+    <section class="panel" id="school">
+      <div class="loading"><div class="loadbox">Đang nạp Trường học...</div></div>
+      <iframe class="frame" title="Trường học" data-src="https://blackberrythangbv-bit.github.io/ViettelCaoBangDieuHanh/" loading="lazy"></iframe>
+    </section>
+
+    <section class="panel" id="enterprise">
+      <div class="loading"><div class="loadbox">Đang nạp Doanh nghiệp...</div></div>
+      <iframe class="frame" title="Doanh nghiệp" data-src="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+      <div class="fallback">Nếu không hiển thị: <a href="https://script.google.com/macros/s/AKfycbzxSHqdzpKUSpcf2IhO_0oozRxDx_zZVtLCi7bMzQJiAIOnux7JQFI2JvP188g4RzmD/exec" target="_blank" rel="noopener">mở trực tiếp</a></div>
+    </section>
+  </main>
+
+  <script>
+    const tabs=[...document.querySelectorAll('.tab')];
+    const panels=[...document.querySelectorAll('.panel')];
+    let active='kpi';
+
+    function ensure(id,force=false){
+      const p=document.getElementById(id),f=p?.querySelector('iframe');
+      if(!f)return;
+      const base=f.dataset.src;
+      if(force){
+        p.querySelector('.loading')?.classList.remove('hide');
+        f.src=base+(base.includes('?')?'&':'?')+'_reload='+Date.now();
+        f.dataset.started='1';
+        return;
+      }
+      if(!f.dataset.started){
+        f.dataset.started='1';
+        f.src=base;
+      }
+    }
+
+    function activate(id){
+      active=id;
+      tabs.forEach(t=>t.classList.toggle('active',t.dataset.panel===id));
+      panels.forEach(p=>p.classList.toggle('active',p.id===id));
+      ensure(id,false);
+    }
+
+    tabs.forEach(t=>t.addEventListener('click',()=>activate(t.dataset.panel),{passive:true}));
+    document.querySelectorAll('iframe').forEach(f=>f.addEventListener('load',()=>f.closest('.panel')?.querySelector('.loading')?.classList.add('hide'),{passive:true}));
+    document.getElementById('reload').onclick=()=>ensure(active,true);
+    ensure('kpi',false);
+  </script>
+</body>
+</html>
