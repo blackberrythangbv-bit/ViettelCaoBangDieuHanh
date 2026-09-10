@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="theme-color" content="#E80500">
+<title>Điều hành Viettel Cao Bằng</title>
+<style>
+:root{--red:#E80500;--dark:#B60400;--line:#e5e7eb}*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f4f5f6;font-family:"Times New Roman",serif}body{padding-top:env(safe-area-inset-top);background:var(--red)}#shell{height:calc(100% - env(safe-area-inset-top));background:#fff;display:flex;flex-direction:column}.topbar{height:44px;flex:0 0 44px;display:flex;align-items:center;justify-content:space-between;gap:6px;background:linear-gradient(90deg,var(--red),var(--dark));color:#fff;padding:0 8px;box-shadow:0 1px 5px #0002;z-index:100}.left,.right{display:flex;align-items:center;gap:5px}.topbar button{border:1px solid #ffffff55;background:#ffffff14;color:#fff;height:32px;min-width:38px;border-radius:8px;font-size:18px;font-weight:700;padding:0 9px}.title{min-width:0;flex:1;text-align:center;font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.framewrap{position:relative;flex:1;min-height:0;background:#f4f5f6}iframe{display:block;width:100%;height:100%;border:0;background:#fff}#loading{position:absolute;inset:0;display:grid;place-items:center;background:#f4f5f6;z-index:20;transition:opacity .18s ease}#loading.hide{opacity:0;pointer-events:none}.loadbox{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 22px;text-align:center;box-shadow:0 4px 18px #0001;color:#40474b;font-weight:700}.logo{width:52px;height:52px;border-radius:14px;background:var(--red);color:#fff;display:grid;place-items:center;margin:0 auto 10px;font-size:20px;font-weight:900}.small{font-size:11px;color:#7a8186;margin-top:4px}#offline{display:none;position:absolute;left:10px;right:10px;top:10px;background:#fff3cd;color:#7a5200;border:1px solid #ffe69c;border-radius:9px;padding:9px 11px;z-index:30;font-size:12px;font-weight:700}#offline.show{display:block}@media(max-width:520px){.topbar{height:42px;flex-basis:42px}.title{font-size:12px}.topbar button{height:30px;min-width:34px;font-size:17px}}
+</style>
+</head>
+<body>
+<div id="shell">
+  <div class="topbar">
+    <div class="left"><button id="backBtn">‹</button><button id="homeBtn">⌂</button></div>
+    <div class="title">ĐIỀU HÀNH VIETTEL CAO BẰNG</div>
+    <div class="right"><button id="refreshBtn">↻</button></div>
+  </div>
+  <div class="framewrap">
+    <div id="offline">Mất kết nối mạng. App sẽ tự kết nối lại khi có Internet.</div>
+    <div id="loading"><div class="loadbox"><div class="logo">VCB</div>Đang mở hệ thống điều hành...<div class="small">Android · Realtime</div></div></div>
+    <iframe id="appFrame" src="https://script.google.com/macros/s/AKfycbxwDT_LV1D49SKfZkv0_CfmBcRcpubbJGnd9TFBL5b1y0AHQ-a1zbRQf83CBWDeRkaApQ/exec" allow="clipboard-read; clipboard-write" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  </div>
+</div>
+<script>
+const HOME='https://script.google.com/macros/s/AKfycbxwDT_LV1D49SKfZkv0_CfmBcRcpubbJGnd9TFBL5b1y0AHQ-a1zbRQf83CBWDeRkaApQ/exec';
+const frame=document.getElementById('appFrame'),loading=document.getElementById('loading'),offline=document.getElementById('offline');
+function goHome(){loading.classList.remove('hide');frame.src=HOME+(HOME.includes('?')?'&':'?')+'_mobile='+Date.now()}
+function refresh(){loading.classList.remove('hide');frame.src=frame.src.split('#')[0]+(frame.src.includes('?')?'&':'?')+'_r='+Date.now()}
+document.getElementById('homeBtn').onclick=goHome;document.getElementById('backBtn').onclick=goHome;document.getElementById('refreshBtn').onclick=refresh;
+frame.addEventListener('load',()=>loading.classList.add('hide'));window.addEventListener('offline',()=>offline.classList.add('show'));window.addEventListener('online',()=>offline.classList.remove('show'));
+</script>
+</body>
+</html>
