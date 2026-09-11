@@ -1,4 +1,4 @@
-name: Build APK V1.2.2 FULL SPEED
+name: Build APK V1.2.3 MOBILE FIT
 
 on:
   workflow_dispatch:
@@ -32,11 +32,11 @@ jobs:
         run: gradle :app:assembleDebug --no-daemon
 
       - name: Rename APK
-        run: cp mobile-apk-v12/app/build/outputs/apk/debug/app-debug.apk ViettelCaoBangDieuHanh-V1.2.2-FULL-SPEED.apk
+        run: cp mobile-apk-v12/app/build/outputs/apk/debug/app-debug.apk ViettelCaoBangDieuHanh-V1.2.3-MOBILE-FIT.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ViettelCaoBangDieuHanh-V1.2.2-FULL-SPEED-APK
-          path: ViettelCaoBangDieuHanh-V1.2.2-FULL-SPEED.apk
+          name: ViettelCaoBangDieuHanh-V1.2.3-MOBILE-FIT-APK
+          path: ViettelCaoBangDieuHanh-V1.2.3-MOBILE-FIT.apk
           if-no-files-found: error
