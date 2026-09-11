@@ -86,7 +86,7 @@ table{width:100%;border-collapse:collapse;font-size:12px}th{position:sticky;top:
       <button id="save" class="btn save">LƯU</button>
       <span id="msg" class="msg"></span>
       <button id="reset" class="btn reset">Xóa lọc</button>
-      <button id="exportExcel" class="btn export">XUẤT EXCEL TỔNG HỢP</button>
+      <button id="exportExcel" class="btn export">XUẤT EXCEL NHANH</button>
       <div id="count" class="pill">150 trường</div>
     </section>
 
@@ -215,8 +215,90 @@ async function confirm(d){for(let i=0;i<8;i++){await new Promise(r=>setTimeout(r
 g('save').onclick=async()=>{clear();const d=draft(),m=valid(d);if(m.length){g('msg').textContent='Thiếu: '+m.join(', ');g('msg').className='msg err';return}g('save').disabled=true;g('save').textContent='ĐANG LƯU...';try{await post({action:'save',xa:S.xa,truong:S.truong,...d});const fresh=await confirm(d);Object.assign(S,fresh);const idx=D.findIndex(x=>String(x.stt)===String(S.stt));if(idx>=0)D[idx]={...D[idx],...fresh};writeCache();renderFast();scheduleTable();g('msg').textContent='ĐÃ LƯU THÀNH CÔNG';g('msg').className='msg ok'}catch(x){g('msg').textContent='LƯU THẤT BẠI: '+x.message;g('msg').className='msg err'}finally{g('save').disabled=V<2;g('save').textContent='LƯU'}};
 ['am','status','ketqua'].forEach(x=>g(x).onchange=()=>{if(!S)scheduleTable()});
 g('reset').onclick=()=>{S=null;for(const x of ['school','prio','am','status','ketqua','ngay','nguoi','chucvu','sdt','dv','dichvu','ncc','nhucau','giaiphap','ghichu'])g(x).value='';clear();scheduleTable()};
+
+function xEsc(v){
+  return String(v??'').replace(/[&<>"']/g,c=>({
+    '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'
+  }[c]));
+}
+function xCell(v,type,style){
+  const t=type||((typeof v==='number'&&isFinite(v))?'Number':'String');
+  return `<Cell${style?` ss:StyleID="${style}"`:''}><Data ss:Type="${t}">${xEsc(v)}</Data></Cell>`;
+}
+function xSheet(name,heads,rows){
+  let s=`<Worksheet ss:Name="${xEsc(name)}"><Table>`;
+  s+='<Row>'+heads.map(h=>xCell(h,'String','hdr')).join('')+'</Row>';
+  for(const row of rows)s+='<Row>'+row.map(v=>xCell(v)).join('')+'</Row>';
+  return s+'</Table></Worksheet>';
+}
+function downloadExcelBlob_(blob,name){
+  const url=URL.createObjectURL(blob),a=document.createElement('a');
+  a.href=url;a.download=name;document.body.appendChild(a);a.click();
+  setTimeout(()=>{URL.revokeObjectURL(url);a.remove()},1200);
+}
+function exportSchoolExcelFast(){
+  const btn=g('exportExcel'),old=btn.textContent,t0=performance.now();
+  btn.disabled=true;btn.textContent='ĐANG TẠO...';
+  try{
+    const total=D.length;let done=0,p1=0,p1done=0,warn=0;const by={};
+    for(const r of D){
+      const ok=st(r)==='done',a=am(r),isP1=n(r.uutien).includes('1');
+      if(ok)done++;if(isP1){p1++;if(ok)p1done++}
+      if(/từ chối|đối thủ/i.test(n(r.ketqua)))warn++;
+      const z=by[a]||(by[a]={am:a,total:0,done:0,p1:0,p1done:0,warn:0});
+      z.total++;if(ok)z.done++;if(isP1){z.p1++;if(ok)z.p1done++}
+      if(/từ chối|đối thủ/i.test(n(r.ketqua)))z.warn++;
+    }
+
+    const sumHeads=['Chỉ tiêu','Kết quả','Tỷ lệ'];
+    const sumRows=[
+      ['Tổng số trường',total,1],
+      ['Đã tiếp xúc',done,total?done/total:0],
+      ['Chưa tiếp xúc',total-done,total?(total-done)/total:0],
+      ['Ưu tiên 1',p1,''],
+      ['Ưu tiên 1 đã tiếp xúc',p1done,p1?p1done/p1:0],
+      ['Ưu tiên 1 chưa tiếp xúc',p1-p1done,p1?(p1-p1done)/p1:0],
+      ['Cảnh báo đối thủ/từ chối',warn,'']
+    ];
+    const amHeads=['STT','AM phụ trách','Tổng trường','Đã TX','Chưa TX','% HT','ƯT1','ƯT1 đã TX','Cảnh báo'];
+    const amRows=Object.values(by).sort((a,b)=>a.am.localeCompare(b.am,'vi')).map((x,i)=>[
+      i+1,x.am,x.total,x.done,x.total-x.done,x.total?x.done/x.total:0,x.p1,x.p1done,x.warn
+    ]);
+    const detailHeads=[
+      'STT','Xã/Phường','Cấp học','Tên trường','Mức ưu tiên','GIAO AM','AM phụ trách',
+      'Ngày tiếp xúc','Người đại diện','Chức vụ','SĐT','Dùng DV Viettel',
+      'Dịch vụ Viettel đang sử dụng','Đối thủ/NCC khác','Nhu cầu/Vấn đề ghi nhận',
+      'Giải pháp đề xuất','Kết quả tiếp xúc','Ghi chú'
+    ];
+    const detailRows=[...D].sort((a,b)=>Number(a.stt)-Number(b.stt)).map(r=>[
+      r.stt,r.xa,r.cap,r.truong,r.uutien,r.giaoam,r.am,r.ngay,r.nguoi,r.chucvu,r.sdt,
+      r.dasudung,r.dichvu,r.ncc,r.nhucau,r.giaiphap,r.ketqua,r.ghichu
+    ]);
+
+    const xml=`<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet">
+ <Styles><Style ss:ID="hdr"><Font ss:Bold="1" ss:Color="#FFFFFF"/>
+ <Interior ss:Color="#505050" ss:Pattern="Solid"/><Alignment ss:Vertical="Center" ss:WrapText="1"/></Style></Styles>
+ ${xSheet('Tong_hop',sumHeads,sumRows)}
+ ${xSheet('Theo_AM',amHeads,amRows)}
+ ${xSheet('Chi_tiet',detailHeads,detailRows)}
+</Workbook>`;
+
+    const blob=new Blob(['\ufeff',xml],{type:'application/vnd.ms-excel;charset=utf-8'});
+    const ts=new Date(),stamp=`${String(ts.getDate()).padStart(2,'0')}-${String(ts.getMonth()+1).padStart(2,'0')}-${ts.getFullYear()}`;
+    downloadExcelBlob_(blob,`Bao_cao_tiep_xuc_Truong_hoc_${stamp}.xls`);
+    g('speed').textContent=`Xuất Excel tại máy trong ${Math.round(performance.now()-t0)} ms`;
+  }catch(err){
+    g('speed').textContent='Lỗi xuất Excel: '+(err?.message||String(err));
+  }finally{
+    btn.disabled=false;btn.textContent=old;
+  }
+}
+g('exportExcel').onclick=exportSchoolExcelFast;
+
 load();
 </script>
-<script src="report-export.js" defer></script>
 </body>
 </html>
