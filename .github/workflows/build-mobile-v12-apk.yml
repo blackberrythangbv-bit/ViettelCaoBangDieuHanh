@@ -1,4 +1,4 @@
-name: Build APK V1.2 FIX DOWNLOAD
+name: Build APK V1.2.1 NEW LOGO
 
 on:
   workflow_dispatch:
@@ -32,11 +32,11 @@ jobs:
         run: gradle :app:assembleDebug --no-daemon
 
       - name: Rename APK
-        run: cp mobile-apk-v12/app/build/outputs/apk/debug/app-debug.apk ViettelCaoBangDieuHanh-V1.2-FIX-DOWNLOAD.apk
+        run: cp mobile-apk-v12/app/build/outputs/apk/debug/app-debug.apk ViettelCaoBangDieuHanh-V1.2.1-NEW-LOGO.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ViettelCaoBangDieuHanh-V1.2-FIX-DOWNLOAD-APK
-          path: ViettelCaoBangDieuHanh-V1.2-FIX-DOWNLOAD.apk
+          name: ViettelCaoBangDieuHanh-V1.2.1-NEW-LOGO-APK
+          path: ViettelCaoBangDieuHanh-V1.2.1-NEW-LOGO.apk
           if-no-files-found: error
