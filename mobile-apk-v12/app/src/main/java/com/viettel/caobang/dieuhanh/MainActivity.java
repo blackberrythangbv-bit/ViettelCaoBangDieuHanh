@@ -39,6 +39,36 @@ public class MainActivity extends Activity {
     private static final int STORAGE_REQ = 1201;
     private WebView webView;
 
+    private static final String MOBILE_UI_PATCH = """
+(function(){
+  if(window.__VT_MOBILE_UI__) return;
+  window.__VT_MOBILE_UI__ = true;
+  const css = `
+  @media (max-width:760px){
+    html{-webkit-text-size-adjust:82% !important;text-size-adjust:82% !important}
+    .tabs,.tabbar,.nav-tabs,[role="tablist"]{gap:2px !important;padding-left:3px !important;padding-right:3px !important;overflow-x:hidden !important}
+    .tabs>.tab,.tabs>button,.tabbar>button,.nav-tabs>button,[role="tab"]{
+      flex:1 1 0 !important;min-width:0 !important;max-width:none !important;
+      font-size:10px !important;line-height:1.08 !important;padding:6px 3px !important;
+      white-space:normal !important;text-align:center !important;overflow:hidden !important;
+    }
+    header button,.top button,.toolbar button,.actions button,.iconbtn{
+      font-size:10px !important;line-height:1.1 !important;padding:6px 6px !important;
+    }
+  }`;
+  function apply(){
+    try{
+      if(document.getElementById('vt-mobile-ui-style')) return;
+      const st=document.createElement('style');
+      st.id='vt-mobile-ui-style';st.textContent=css;
+      (document.head||document.documentElement).appendChild(st);
+    }catch(e){}
+  }
+  apply();
+  document.addEventListener('DOMContentLoaded',apply,{once:true});
+})();
+""";
+
     private static final String DOWNLOAD_PATCH = """
 (function(){
   if(window.__VT_NATIVE_DL__) return;
@@ -116,7 +146,8 @@ public class MainActivity extends Activity {
         s.setLoadWithOverviewMode(true);
         s.setUseWideViewPort(true);
         s.setCacheMode(WebSettings.LOAD_DEFAULT);
-        s.setUserAgentString(s.getUserAgentString() + " ViettelCaoBangApp/1.2.2");
+        s.setTextZoom(82);
+        s.setUserAgentString(s.getUserAgentString() + " ViettelCaoBangApp/1.2.3");
 
         CookieManager cm = CookieManager.getInstance();
         cm.setAcceptCookie(true);
@@ -127,6 +158,7 @@ public class MainActivity extends Activity {
         if (WebViewFeature.isFeatureSupported(WebViewFeature.DOCUMENT_START_SCRIPT)) {
             Set<String> origins = new HashSet<>();
             origins.add("*");
+            WebViewCompat.addDocumentStartJavaScript(webView, MOBILE_UI_PATCH, origins);
             WebViewCompat.addDocumentStartJavaScript(webView, DOWNLOAD_PATCH, origins);
         }
 
@@ -153,6 +185,7 @@ public class MainActivity extends Activity {
             @Override
             public void onPageFinished(WebView view, String url) {
                 super.onPageFinished(view,url);
+                view.evaluateJavascript(MOBILE_UI_PATCH, null);
                 view.evaluateJavascript(DOWNLOAD_PATCH, null);
             }
         });
