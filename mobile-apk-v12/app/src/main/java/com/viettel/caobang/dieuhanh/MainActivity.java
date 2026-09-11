@@ -35,7 +35,7 @@ import java.util.Set;
 
 public class MainActivity extends Activity {
 
-    private static final String HOME_URL = "https://script.google.com/macros/s/AKfycbw39Q1fL-RlWhl9dmW83oTMDOFXiFamqA1_B2FfnbFlgpQR-MyjyTE0nGzQQm-JQ40alw/exec";
+    private static final String HOME_URL = "https://script.google.com/macros/s/AKfycbxwDT_LV1D49SKfZkv0_CfmBcRcpubbJGnd9TFBL5b1y0AHQ-a1zbRQf83CBWDeRkaApQ/exec";
     private static final int STORAGE_REQ = 1201;
     private WebView webView;
 
@@ -116,7 +116,7 @@ public class MainActivity extends Activity {
         s.setLoadWithOverviewMode(true);
         s.setUseWideViewPort(true);
         s.setCacheMode(WebSettings.LOAD_DEFAULT);
-        s.setUserAgentString(s.getUserAgentString() + " ViettelCaoBangApp/1.2");
+        s.setUserAgentString(s.getUserAgentString() + " ViettelCaoBangApp/1.2.2");
 
         CookieManager cm = CookieManager.getInstance();
         cm.setAcceptCookie(true);
