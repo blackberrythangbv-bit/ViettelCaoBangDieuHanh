@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+  <meta name="theme-color" content="#E80500">
+  <meta name="color-scheme" content="light">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Điều hành CBG">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="format-detection" content="telephone=no">
+  <title>Điều hành Viettel Cao Bằng</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="apple-touch-icon" href="./icon.png">
+  <link rel="icon" type="image/png" href="./icon.png">
+  <link rel="preconnect" href="https://script.google.com">
+  <link rel="preconnect" href="https://script.googleusercontent.com" crossorigin>
+  <style>
+    :root{--red:#E80500;--red2:#B60400;--line:#e5e7eb;--bg:#f4f5f6;--txt:#40474b;--muted:#747b80}
+    *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:var(--red);font-family:"Times New Roman",Times,serif;color:var(--txt)}
+    body{padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom)}
+    #shell{height:100%;background:#fff;display:flex;flex-direction:column}
+    .topbar{height:44px;flex:0 0 44px;display:flex;align-items:center;gap:6px;background:linear-gradient(90deg,var(--red),var(--red2));color:#fff;padding:0 8px;box-shadow:0 1px 5px #0002;z-index:100}
+    .title{min-width:0;flex:1;text-align:center;font-size:13px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .topbar button{border:1px solid #ffffff55;background:#ffffff14;color:#fff;height:32px;min-width:38px;border-radius:8px;font-size:17px;font-weight:800;padding:0 9px}
+    .topbar button:active{transform:scale(.96)}
+    .framewrap{position:relative;flex:1;min-height:0;background:var(--bg)}
+    iframe{display:block;width:100%;height:100%;border:0;background:#fff}
+    #loading{position:absolute;inset:0;display:grid;place-items:center;background:var(--bg);z-index:20;transition:opacity .18s ease}
+    #loading.hide{opacity:0;pointer-events:none}
+    .loadbox{background:#fff;border:1px solid var(--line);border-radius:14px;padding:18px 22px;text-align:center;box-shadow:0 4px 18px #0001;font-weight:800;max-width:86vw}
+    .logo{width:58px;height:58px;border-radius:16px;background:var(--red);color:#fff;display:grid;place-items:center;margin:0 auto 10px;font-size:20px;font-weight:900}
+    .small{font-size:11px;color:var(--muted);margin-top:5px}
+    #offline{display:none;position:absolute;left:10px;right:10px;top:10px;background:#fff3cd;color:#7a5200;border:1px solid #ffe69c;border-radius:9px;padding:9px 11px;z-index:30;font-size:12px;font-weight:700}
+    #offline.show{display:block}
+    #installTip{display:none;position:absolute;left:10px;right:10px;bottom:10px;z-index:35;background:#fff;border:1px solid var(--line);border-radius:12px;box-shadow:0 4px 18px #0002;padding:11px 12px;font-size:12px;line-height:1.45}
+    #installTip.show{display:block}
+    #installTip b{color:var(--red)}
+    #installTip button{float:right;border:0;background:#eef0f1;border-radius:8px;padding:5px 8px;font-weight:800;color:var(--txt)}
+    @media(max-width:520px){.topbar{height:42px;flex-basis:42px}.title{font-size:12px}.topbar button{height:30px;min-width:34px;font-size:16px;padding:0 8px}}
+  </style>
+</head>
+<body>
+<div id="shell">
+  <div class="topbar">
+    <button id="homeBtn" aria-label="KPI">⌂</button>
+    <div class="title">ĐIỀU HÀNH VIETTEL CAO BẰNG</div>
+    <button id="refreshBtn" aria-label="Làm mới">↻</button>
+    <button id="safariBtn" aria-label="Mở Safari">↗</button>
+  </div>
+  <div class="framewrap">
+    <div id="offline">Mất kết nối mạng. Hệ thống sẽ tự kết nối lại khi có Internet.</div>
+    <div id="loading"><div class="loadbox"><div class="logo">VCB</div>Đang mở hệ thống điều hành...<div class="small">PWA iPhone · Realtime</div></div></div>
+    <div id="installTip"><button id="closeTip">×</button><b>Cài như ứng dụng trên iPhone:</b><br>Safari → Chia sẻ → <b>Thêm vào Màn hình chính</b> → Mở dưới dạng ứng dụng web → Thêm.</div>
+    <iframe id="appFrame" src="https://script.google.com/macros/s/AKfycbxwDT_LV1D49SKfZkv0_CfmBcRcpubbJGnd9TFBL5b1y0AHQ-a1zbRQf83CBWDeRkaApQ/exec" allow="clipboard-read; clipboard-write" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+  </div>
+</div>
+<script>
+(() => {
+  const HOME='https://script.google.com/macros/s/AKfycbxwDT_LV1D49SKfZkv0_CfmBcRcpubbJGnd9TFBL5b1y0AHQ-a1zbRQf83CBWDeRkaApQ/exec';
+  const frame=document.getElementById('appFrame');
+  const loading=document.getElementById('loading');
+  const offline=document.getElementById('offline');
+  const tip=document.getElementById('installTip');
+  const standalone=window.matchMedia('(display-mode: standalone)').matches||window.navigator.standalone===true;
+  const isiOS=/iphone|ipad|ipod/i.test(navigator.userAgent);
+  const withBust=(url,key)=>url+(url.includes('?')?'&':'?')+key+'='+Date.now();
+  function goHome(){loading.classList.remove('hide');frame.src=withBust(HOME,'_pwa')}
+  function refresh(){loading.classList.remove('hide');try{frame.src=withBust(frame.src.split('#')[0],'_r')}catch(_){goHome()}}
+  document.getElementById('homeBtn').addEventListener('click',goHome);
+  document.getElementById('refreshBtn').addEventListener('click',refresh);
+  document.getElementById('safariBtn').addEventListener('click',()=>window.open(HOME,'_blank','noopener'));
+  document.getElementById('closeTip').addEventListener('click',()=>{tip.classList.remove('show');localStorage.setItem('CBG_PWA_TIP_CLOSED','1')});
+  frame.addEventListener('load',()=>loading.classList.add('hide'));
+  window.addEventListener('offline',()=>offline.classList.add('show'));
+  window.addEventListener('online',()=>{offline.classList.remove('show');if(!frame.src)goHome()});
+  if(isiOS&&!standalone&&localStorage.getItem('CBG_PWA_TIP_CLOSED')!=='1')setTimeout(()=>tip.classList.add('show'),900);
+  if('serviceWorker' in navigator)window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}));
+})();
+</script>
+</body>
+</html>

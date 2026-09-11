@@ -1,0 +1,16 @@
+{
+  "id": "./",
+  "name": "Điều hành Viettel Cao Bằng",
+  "short_name": "Điều hành CBG",
+  "description": "Hệ thống điều hành kinh doanh Viettel Cao Bằng",
+  "lang": "vi",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#E80500",
+  "theme_color": "#E80500",
+  "icons": [
+    {"src":"./icon.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}
+  ]
+}
