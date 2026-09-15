@@ -18,8 +18,9 @@ jobs:
           rm -rf extracted
           mkdir extracted
           unzip -o ViettelCaoBangDieuHanh_V14_REALTIME_WEEKACTUAL.zip -d extracted
+          test -f extracted/app/src/main/java/com/viettel/caobang/dieuhanh/MainActivity.kt
 
-      - name: Update APK to latest Web App and version V1.2.4
+      - name: Update WebView to latest Web App and set V1.2.4
         shell: bash
         run: |
           python3 - <<'PY'
@@ -28,49 +29,88 @@ jobs:
 
           root = Path('extracted')
           main = root / 'app/src/main/java/com/viettel/caobang/dieuhanh/MainActivity.kt'
-          if not main.exists():
-              raise SystemExit(f'Missing {main}')
-
           new_url = 'https://script.google.com/macros/s/AKfycbzMwfI2QP9ZFCE8owJCGAcqX9jR3yvjwqelMm0fyirWDa7RFX79kIfKeAiMv_NpJRgSrA/exec'
           text = main.read_text(encoding='utf-8')
+          original = text
+          changed = False
 
-          # Chỉ thay URL Web App chính trong MainActivity; không đụng các endpoint khác.
-          pattern = r'https://script\.google\.com/macros/s/[A-Za-z0-9_-]+/exec'
-          urls = re.findall(pattern, text)
-          if not urls:
-              raise SystemExit('Không tìm thấy URL Google Apps Script trong MainActivity.kt')
-          text2, n = re.subn(pattern, new_url, text, count=1)
-          main.write_text(text2, encoding='utf-8')
-          print('Updated Web App URL:', urls[0], '->', new_url)
-          print('URL replacements:', n)
+          # 1) Ưu tiên thay Google Apps Script URL cũ nếu có.
+          gas_pattern = r'https://script\.google\.com/macros/s/[A-Za-z0-9_-]+/exec(?:\?[^"\'\s)]*)?'
+          text2, n = re.subn(gas_pattern, new_url, text)
+          if n:
+              text = text2
+              changed = True
+              print(f'Replaced {n} Google Apps Script URL(s)')
 
-          # Tăng versionName lên 1.2.4; versionCode tăng 1 nếu tìm thấy.
-          gradle_files = [
-              root / 'app/build.gradle',
-              root / 'app/build.gradle.kts',
-          ]
-          found_gradle = False
-          for gp in gradle_files:
-              if not gp.exists():
-                  continue
-              found_gradle = True
-              g = gp.read_text(encoding='utf-8')
-              g2 = re.sub(r'versionName\s*(?:=\s*)?["\'][^"\']+["\']',
-                          lambda m: 'versionName = "1.2.4"' if '=' in m.group(0) else 'versionName "1.2.4"',
-                          g, count=1)
-              def bump(m):
-                  prefix, num = m.group(1), int(m.group(2))
-                  return f'{prefix}{num + 1}'
-              g2 = re.sub(r'(versionCode\s*(?:=\s*)?)(\d+)', bump, g2, count=1)
-              gp.write_text(g2, encoding='utf-8')
-              print('Updated version in', gp)
-          if not found_gradle:
-              raise SystemExit('Không tìm thấy app/build.gradle hoặc app/build.gradle.kts')
+          # 2) Nếu app cũ dùng URL HOME/APP/WEB/BASE/START cố định thì thay đúng biến đó.
+          if not changed:
+              const_pattern = re.compile(
+                  r'((?:private\s+)?(?:const\s+val|val|var)\s+(?:HOME_URL|APP_URL|WEB_URL|BASE_URL|START_URL|WEB_APP_URL)\s*=\s*["\'])https?://[^"\']+(["\'])',
+                  re.I
+              )
+              text2, n = const_pattern.subn(lambda m: m.group(1) + new_url + m.group(2), text, count=1)
+              if n:
+                  text = text2
+                  changed = True
+                  print('Replaced main URL constant')
+
+          # 3) Nếu loadUrl chứa URL trực tiếp thì thay URL khởi động đầu tiên.
+          if not changed:
+              load_pattern = re.compile(r'(\.loadUrl\(\s*["\'])https?://[^"\']+(["\']\s*\))')
+              text2, n = load_pattern.subn(lambda m: m.group(1) + new_url + m.group(2), text, count=1)
+              if n:
+                  text = text2
+                  changed = True
+                  print('Replaced direct WebView.loadUrl URL')
+
+          # 4) Trường hợp tên biến khác: tìm dòng khai báo String có URL và được dùng bởi loadUrl.
+          if not changed:
+              candidates = re.findall(r'(\w+)\s*=\s*["\'](https?://[^"\']+)["\']', text)
+              for var, old in candidates:
+                  if re.search(r'loadUrl\(\s*' + re.escape(var) + r'\s*\)', text):
+                      text = text.replace(old, new_url, 1)
+                      changed = True
+                      print(f'Replaced URL variable used by loadUrl: {var}')
+                      break
+
+          if not changed:
+              print('=== MainActivity URL/loadUrl diagnostics ===')
+              for i, line in enumerate(original.splitlines(), 1):
+                  if 'http' in line or 'loadUrl' in line or 'URL' in line.upper():
+                      print(f'{i}: {line}')
+              raise SystemExit('Không xác định được URL khởi động WebView để thay an toàn')
+
+          main.write_text(text, encoding='utf-8')
+
+          # Version cố định để cài đè V1.2.3 an toàn.
+          gradle_candidates = [root / 'app/build.gradle.kts', root / 'app/build.gradle']
+          gradle = next((p for p in gradle_candidates if p.exists()), None)
+          if gradle is None:
+              raise SystemExit('Không tìm thấy app/build.gradle(.kts)')
+
+          g = gradle.read_text(encoding='utf-8')
+          g, n_name = re.subn(
+              r'versionName\s*(?:=\s*)?["\'][^"\']+["\']',
+              lambda m: 'versionName = "1.2.4"' if '=' in m.group(0) else 'versionName "1.2.4"',
+              g,
+              count=1
+          )
+          g, n_code = re.subn(
+              r'versionCode\s*(?:=\s*)?\d+',
+              lambda m: 'versionCode = 124' if '=' in m.group(0) else 'versionCode 124',
+              g,
+              count=1
+          )
+          if not n_name or not n_code:
+              raise SystemExit('Không cập nhật được versionName/versionCode')
+          gradle.write_text(g, encoding='utf-8')
+
+          print('Updated APK to Web App:', new_url)
+          print('Updated versionName=1.2.4, versionCode=124')
           PY
 
-          echo "=== VERIFY WEB APP URL ==="
-          grep -n "AKfycbzMwfI2QP9ZFCE8owJCGAcqX9jR3yvjwqelMm0fyirWDa7RFX79kIfKeAiMv_NpJRgSrA" \
-            extracted/app/src/main/java/com/viettel/caobang/dieuhanh/MainActivity.kt
+          echo "=== VERIFY MAINACTIVITY ==="
+          grep -n -E "script.google.com|loadUrl|HOME_URL|APP_URL|WEB_URL|BASE_URL|START_URL" extracted/app/src/main/java/com/viettel/caobang/dieuhanh/MainActivity.kt || true
           echo "=== VERIFY VERSION ==="
           grep -R -n -E "version(Name|Code)" extracted/app/build.gradle* || true
 
