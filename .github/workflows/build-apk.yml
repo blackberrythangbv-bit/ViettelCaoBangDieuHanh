@@ -1,12 +1,14 @@
-name: Build Android APK V1.2.4 WEBAPP FULL
+name: Build Android APK V1.2.5 WEBAPP FULL
 
 on:
   workflow_dispatch:
   push:
     branches:
       - main
+      - codex/apk-1.2.5-web-link
     paths:
       - '.github/workflows/build-apk.yml'
+      - 'mobile-apk-v12/**'
 
 jobs:
   build:
@@ -15,55 +17,6 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
-      - name: Patch V1.2.3 WebView source to V1.2.4
-        shell: bash
-        run: |
-          python3 - <<'PY'
-          from pathlib import Path
-          import re
-
-          main = Path('mobile-apk-v12/app/src/main/java/com/viettel/caobang/dieuhanh/MainActivity.java')
-          gradle = Path('mobile-apk-v12/app/build.gradle')
-          if not main.exists() or not gradle.exists():
-              raise SystemExit('Không tìm thấy source mobile-apk-v12 của APK V1.2.3')
-
-          new_url = 'https://script.google.com/macros/s/AKfycbzMwfI2QP9ZFCE8owJCGAcqX9jR3yvjwqelMm0fyirWDa7RFX79kIfKeAiMv_NpJRgSrA/exec'
-
-          text = main.read_text(encoding='utf-8')
-          text, n_url = re.subn(
-              r'private\s+static\s+final\s+String\s+HOME_URL\s*=\s*"[^"]+"\s*;',
-              f'private static final String HOME_URL = "{new_url}";',
-              text,
-              count=1
-          )
-          text, n_ua = re.subn(
-              r'ViettelCaoBangApp/[0-9.]+',
-              'ViettelCaoBangApp/1.2.4',
-              text,
-              count=1
-          )
-          if n_url != 1:
-              raise SystemExit('Không thay được HOME_URL trong MainActivity.java')
-          if n_ua != 1:
-              raise SystemExit('Không thay được User-Agent version trong MainActivity.java')
-          main.write_text(text, encoding='utf-8')
-
-          g = gradle.read_text(encoding='utf-8')
-          g, n_code = re.subn(r'versionCode\s+\d+', 'versionCode 16', g, count=1)
-          g, n_name = re.subn(r"versionName\s+'[^']+'", "versionName '1.2.4'", g, count=1)
-          if n_code != 1 or n_name != 1:
-              raise SystemExit('Không cập nhật được versionCode/versionName')
-          gradle.write_text(g, encoding='utf-8')
-
-          print('HOME_URL =', new_url)
-          print('versionName = 1.2.4; versionCode = 16')
-          PY
-
-          echo '=== VERIFY URL ==='
-          grep -n 'HOME_URL' mobile-apk-v12/app/src/main/java/com/viettel/caobang/dieuhanh/MainActivity.java
-          echo '=== VERIFY VERSION ==='
-          grep -n -E 'versionCode|versionName' mobile-apk-v12/app/build.gradle
 
       - name: Setup Java 17
         uses: actions/setup-java@v5
@@ -76,17 +29,17 @@ jobs:
         with:
           gradle-version: '8.10.2'
 
-      - name: Build APK V1.2.4
+      - name: Build APK V1.2.5
         working-directory: mobile-apk-v12
         run: gradle :app:assembleDebug --no-daemon
 
       - name: Rename APK
-        run: cp mobile-apk-v12/app/build/outputs/apk/debug/app-debug.apk ViettelCaoBangDieuHanh-V1.2.4-WEBAPP-FULL.apk
+        run: cp mobile-apk-v12/app/build/outputs/apk/debug/app-debug.apk ViettelCaoBangDieuHanh-V1.2.5-WEBAPP-FULL.apk
 
-      - name: Upload APK V1.2.4
+      - name: Upload APK V1.2.5
         uses: actions/upload-artifact@v4
         with:
-          name: ViettelCaoBangDieuHanh-V1.2.4-WEBAPP-FULL-APK
-          path: ViettelCaoBangDieuHanh-V1.2.4-WEBAPP-FULL.apk
+          name: ViettelCaoBangDieuHanh-V1.2.5-WEBAPP-FULL-APK
+          path: ViettelCaoBangDieuHanh-V1.2.5-WEBAPP-FULL.apk
           if-no-files-found: error
           retention-days: 30

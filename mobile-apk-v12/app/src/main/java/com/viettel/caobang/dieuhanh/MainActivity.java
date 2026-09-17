@@ -147,7 +147,7 @@ public class MainActivity extends Activity {
         s.setUseWideViewPort(true);
         s.setCacheMode(WebSettings.LOAD_DEFAULT);
         s.setTextZoom(82);
-        s.setUserAgentString(s.getUserAgentString() + " ViettelCaoBangApp/1.2.3");
+        s.setUserAgentString(s.getUserAgentString() + " ViettelCaoBangApp/1.2.5");
 
         CookieManager cm = CookieManager.getInstance();
         cm.setAcceptCookie(true);
