@@ -34,7 +34,6 @@ public final class ReportStore {
 
     private ReportStore() {}
 
-    // Giữ tương thích với renderer WebView cũ nếu cần dùng lại.
     public static String saveZip(Context context, String fileName, String base64) throws Exception {
         byte[] data;
         if (Build.VERSION.SDK_INT >= 26) data = java.util.Base64.getDecoder().decode(base64);
@@ -72,10 +71,10 @@ public final class ReportStore {
                 .putString("last_public_zip_uri", publicRef.uri == null ? "" : publicRef.uri.toString())
                 .putString("last_public_zip_legacy_path", publicRef.legacyPath == null ? "" : publicRef.legacyPath)
                 .putLong("last_zip_delete_at", deleteAt)
-                .putString("last_message", "Đã tải & giải nén " + fileName + ". ZIP sẽ tự xóa sau 24 giờ.")
+                .putString("last_message", "Đã tải & giải nén " + fileName + ". Toàn bộ báo cáo sẽ tự xóa sau 24 giờ.")
                 .apply();
 
-        scheduleZipCleanup(context, fileName, zipFile.getAbsolutePath(), publicRef, deleteAt);
+        scheduleFullCleanup(context, fileName, dayDir.getAbsolutePath(), zipFile.getAbsolutePath(), publicRef, deleteAt);
         return fileName;
     }
 
@@ -114,12 +113,13 @@ public final class ReportStore {
         activity.startActivity(Intent.createChooser(share, "Gửi báo cáo qua Tammi"));
     }
 
-    private static void scheduleZipCleanup(Context context, String fileName, String internalPath,
-                                           PublicZipRef publicRef, long when) {
+    private static void scheduleFullCleanup(Context context, String fileName, String dayDirPath,
+                                            String internalPath, PublicZipRef publicRef, long when) {
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         if (am == null) return;
 
         Intent i = new Intent(context, ZipCleanupReceiver.class)
+                .putExtra("day_dir_path", dayDirPath)
                 .putExtra("internal_zip_path", internalPath)
                 .putExtra("public_zip_uri", publicRef.uri == null ? "" : publicRef.uri.toString())
                 .putExtra("public_legacy_path", publicRef.legacyPath == null ? "" : publicRef.legacyPath);
