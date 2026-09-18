@@ -1,0 +1,30 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'vn.viettel.caobang.kpitammi'
+    compileSdk 35
+
+    defaultConfig {
+        applicationId 'vn.viettel.caobang.kpitammi'
+        minSdk 26
+        targetSdk 35
+        versionCode 100
+        versionName '2.0.0'
+    }
+
+    buildTypes {
+        debug {
+            debuggable false
+        }
+        release {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
+    }
+}
