@@ -8,6 +8,7 @@ on:
       - 'mobile-apk-v12/**'
       - '.github/workflows/build-mobile-v12-apk.yml'
 
+# Final rebuild after exact-alarm permission handling was added.
 jobs:
   build:
     runs-on: ubuntu-latest
