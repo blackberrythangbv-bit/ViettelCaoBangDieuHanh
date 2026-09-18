@@ -2,6 +2,7 @@ package vn.viettel.caobang.kpitammi;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -17,6 +18,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 public class MainActivity extends Activity {
+    private static final String OLD_PROXY_MARKER = "AKfycbzjwYws7Sx9YNrr67IowsaaaAYaGA3zr8GID1f-p6e5_Wx4qbrmShtBhbbbpyU06chz";
+
     private EditText edtUrl;
     private EditText edtHour;
     private EditText edtMinute;
@@ -36,7 +39,10 @@ public class MainActivity extends Activity {
 
     private void ensureDefaults() {
         SharedPreferences.Editor e = prefs.edit();
-        if (!prefs.contains(AppConfig.KEY_SOURCE_URL)) e.putString(AppConfig.KEY_SOURCE_URL, AppConfig.DEFAULT_SOURCE_URL);
+        String savedUrl = prefs.getString(AppConfig.KEY_SOURCE_URL, "");
+        if (savedUrl == null || savedUrl.trim().isEmpty() || savedUrl.contains(OLD_PROXY_MARKER)) {
+            e.putString(AppConfig.KEY_SOURCE_URL, AppConfig.DEFAULT_SOURCE_URL);
+        }
         if (!prefs.contains(AppConfig.KEY_HOUR)) e.putInt(AppConfig.KEY_HOUR, AppConfig.DEFAULT_HOUR);
         if (!prefs.contains(AppConfig.KEY_MINUTE)) e.putInt(AppConfig.KEY_MINUTE, AppConfig.DEFAULT_MINUTE);
         if (!prefs.contains(AppConfig.KEY_AUTO_ENABLED)) e.putBoolean(AppConfig.KEY_AUTO_ENABLED, true);
@@ -67,7 +73,7 @@ public class MainActivity extends Activity {
         root.addView(sub, subLp);
 
         edtUrl = new EditText(this);
-        edtUrl.setHint("URL tải file ZIP báo cáo");
+        edtUrl.setHint("URL Web App báo cáo");
         edtUrl.setSingleLine(true);
         edtUrl.setTextSize(18);
         edtUrl.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
@@ -102,12 +108,16 @@ public class MainActivity extends Activity {
         Button run = oldButton("CHẠY THỬ NGAY");
         run.setOnClickListener(v -> {
             if (!saveConfig(false)) return;
-            prefs.edit().putString("last_message", "Đang tải báo cáo...").apply();
+            prefs.edit().putString("last_message", "Đang tạo báo cáo từ Web App gốc...").apply();
             refreshStatus();
             AutoReportService.startNow(this, 0, true);
-            Toast.makeText(this, "Đang tải báo cáo từ nguồn đã cấu hình.", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Đang tạo báo cáo ngày hiện tại ở chế độ ẩn.", Toast.LENGTH_SHORT).show();
         });
         root.addView(run, buttonLp());
+
+        Button login = oldButton("ĐĂNG NHẬP WEB APP");
+        login.setOnClickListener(v -> startActivity(new Intent(this, LoginActivity.class)));
+        root.addView(login, buttonLp());
 
         Button send = oldButton("GỬI TAMMI");
         send.setOnClickListener(v -> {
@@ -149,7 +159,7 @@ public class MainActivity extends Activity {
 
     private boolean saveConfig(boolean enableAuto) {
         String url = edtUrl.getText().toString().trim();
-        if (url.isEmpty()) {
+        if (url.isEmpty() || url.contains(OLD_PROXY_MARKER)) {
             edtUrl.setText(AppConfig.DEFAULT_SOURCE_URL);
             url = AppConfig.DEFAULT_SOURCE_URL;
         }
@@ -177,7 +187,7 @@ public class MainActivity extends Activity {
 
     private void refreshStatus() {
         if (status == null) return;
-        String msg = prefs.getString("last_message", "Sẵn sàng. URL báo cáo đã được cấu hình sẵn.");
+        String msg = prefs.getString("last_message", "Sẵn sàng. Web App gốc đã được cấu hình sẵn.");
         int h = prefs.getInt(AppConfig.KEY_HOUR, AppConfig.DEFAULT_HOUR);
         int m = prefs.getInt(AppConfig.KEY_MINUTE, AppConfig.DEFAULT_MINUTE);
         boolean on = prefs.getBoolean(AppConfig.KEY_AUTO_ENABLED, true);
