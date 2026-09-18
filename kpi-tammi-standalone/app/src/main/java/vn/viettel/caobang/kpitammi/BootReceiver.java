@@ -7,6 +7,6 @@ import android.content.Intent;
 public class BootReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
-        ReportScheduler.scheduleNext0730(context);
+        ReportScheduler.scheduleConfigured(context);
     }
 }
