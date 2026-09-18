@@ -12,6 +12,7 @@ public final class AppConfig {
     public static final int DEFAULT_HOUR = 7;
     public static final int DEFAULT_MINUTE = 30;
 
+    // Web App DNS gốc - nguồn sinh Báo cáo ngày hiện tại.
     public static final String DEFAULT_SOURCE_URL =
-            "https://script.google.com/macros/s/AKfycbzjwYws7Sx9YNrr67IowsaaaAYaGA3zr8GID1f-p6e5_Wx4qbrmShtBhbbbpyU06chz/exec?token=CBG-KPI-TAMMI-2026";
+            "https://script.google.com/macros/s/AKfycbxwDT_LV1D49SKfZkv0_CfmBcRcpubbJGnd9TFBL5b1y0AHQ-a1zbRQf83CBWDeRkaApQ/exec";
 }
