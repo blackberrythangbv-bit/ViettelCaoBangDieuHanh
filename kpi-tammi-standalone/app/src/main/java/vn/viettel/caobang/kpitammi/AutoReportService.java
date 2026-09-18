@@ -17,7 +17,6 @@ import java.util.Locale;
 public class AutoReportService extends Service {
     private static final String CHANNEL_ID = "kpi_report_auto";
     private static final int NOTI_ID = 7301;
-    private ReportWebRunner runner;
     private int attempt;
     private boolean manual;
 
@@ -39,39 +38,36 @@ public class AutoReportService extends Service {
     public int onStartCommand(Intent intent, int flags, int startId) {
         attempt = intent != null ? intent.getIntExtra("attempt", 0) : 0;
         manual = intent != null && intent.getBooleanExtra("manual", false);
-        startForeground(NOTI_ID, notification("Đang lấy báo cáo KPI..."));
-        saveMessage("Đang lấy báo cáo...");
+        startForeground(NOTI_ID, notification("Đang tải ZIP báo cáo KPI..."));
+        saveMessage("Đang tải báo cáo từ URL đã cấu hình...");
 
-        runner = new ReportWebRunner(this, new ReportWebRunner.Callback() {
-            @Override
-            public void onSuccess(String fileName) {
+        String sourceUrl = getSharedPreferences(AppConfig.PREFS, MODE_PRIVATE)
+                .getString(AppConfig.KEY_SOURCE_URL, AppConfig.DEFAULT_SOURCE_URL);
+
+        new Thread(() -> {
+            try {
+                String fileName = DirectReportDownloader.fetchAndStore(AutoReportService.this, sourceUrl);
                 String time = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date());
-                saveMessage("Đã lấy " + fileName + " lúc " + time);
-                notifyFinal("Đã lấy báo cáo", fileName);
-                ReportScheduler.scheduleNext0730(AutoReportService.this);
-                stopSelf();
-            }
-
-            @Override
-            public void onError(String message) {
-                if ("NEED_LOGIN".equals(message)) {
-                    saveMessage("Cần đăng nhập Web App một lần trong app");
-                    notifyFinal("Chưa lấy được báo cáo", "Mở app và bấm ĐĂNG NHẬP WEB APP.");
-                    ReportScheduler.scheduleNext0730(AutoReportService.this);
-                } else if (!manual && attempt < 3) {
+                saveMessage("Đã tải & giải nén " + fileName + " lúc " + time + ". Sẵn sàng GỬI TAMMI.");
+                notifyFinal("Báo cáo KPI đã sẵn sàng", "Bấm GỬI TAMMI để gửi bộ báo cáo.");
+                ReportScheduler.scheduleConfigured(AutoReportService.this);
+            } catch (Exception e) {
+                String message = e.getMessage() == null ? e.toString() : e.getMessage();
+                if (!manual && attempt < 3) {
                     int nextAttempt = attempt + 1;
-                    saveMessage("Lỗi lần " + (attempt + 1) + ": " + message + ". Sẽ thử lại sau 15 phút.");
-                    notifyFinal("Sẽ thử lại báo cáo", "Lỗi: " + message + " • thử lại sau 15 phút");
+                    saveMessage("Chưa lấy được báo cáo: " + message + ". Sẽ thử lại sau 15 phút.");
+                    notifyFinal("Báo cáo chưa sẵn sàng", "Sẽ tự thử lại sau 15 phút.");
                     ReportScheduler.scheduleRetry(AutoReportService.this, nextAttempt);
                 } else {
-                    saveMessage("Không lấy được báo cáo: " + message);
+                    saveMessage("Chưa lấy được báo cáo: " + message);
                     notifyFinal("Không lấy được báo cáo", message);
-                    ReportScheduler.scheduleNext0730(AutoReportService.this);
+                    ReportScheduler.scheduleConfigured(AutoReportService.this);
                 }
+            } finally {
                 stopSelf();
             }
-        });
-        runner.start();
+        }, "KPI-Tammi-Download").start();
+
         return START_NOT_STICKY;
     }
 
@@ -80,7 +76,7 @@ public class AutoReportService extends Service {
             NotificationManager nm = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
             if (nm != null) {
                 NotificationChannel ch = new NotificationChannel(CHANNEL_ID, "Báo cáo KPI tự động", NotificationManager.IMPORTANCE_DEFAULT);
-                ch.setDescription("Thông báo lấy báo cáo KPI lúc 07:30");
+                ch.setDescription("Tải báo cáo KPI tự động theo giờ đã cấu hình");
                 nm.createNotificationChannel(ch);
             }
         }
@@ -90,7 +86,7 @@ public class AutoReportService extends Service {
         Intent open = new Intent(this, MainActivity.class);
         PendingIntent pi = PendingIntent.getActivity(this, 0, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
         Notification.Builder b = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(this, CHANNEL_ID) : new Notification.Builder(this);
-        b.setContentTitle("Tự động gửi BC")
+        b.setContentTitle("KPI → TAMMI")
                 .setContentText(text)
                 .setSmallIcon(android.R.drawable.stat_sys_download)
                 .setContentIntent(pi)
@@ -115,7 +111,7 @@ public class AutoReportService extends Service {
     }
 
     private void saveMessage(String msg) {
-        getSharedPreferences("report_state", MODE_PRIVATE).edit().putString("last_message", msg).apply();
+        getSharedPreferences(AppConfig.PREFS, MODE_PRIVATE).edit().putString("last_message", msg).apply();
     }
 
     @Override
