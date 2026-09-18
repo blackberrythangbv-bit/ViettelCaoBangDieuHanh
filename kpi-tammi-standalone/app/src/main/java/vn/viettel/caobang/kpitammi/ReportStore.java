@@ -1,6 +1,8 @@
 package vn.viettel.caobang.kpitammi;
 
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
@@ -28,6 +30,8 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 public final class ReportStore {
+    private static final long ZIP_TTL_MS = 24L * 60L * 60L * 1000L;
+
     private ReportStore() {}
 
     // Giữ tương thích với renderer WebView cũ nếu cần dùng lại.
@@ -58,13 +62,20 @@ public final class ReportStore {
         File[] files = extracted.listFiles(File::isFile);
         if (files == null || files.length < 2) throw new Exception("ZIP giải nén không đủ file báo cáo");
 
-        savePublicDownload(context, fileName, data);
+        PublicZipRef publicRef = savePublicDownload(context, fileName, data);
+        long deleteAt = System.currentTimeMillis() + ZIP_TTL_MS;
+
         context.getSharedPreferences(AppConfig.PREFS, Context.MODE_PRIVATE).edit()
                 .putString("last_zip", zipFile.getAbsolutePath())
                 .putString("last_extract_dir", extracted.getAbsolutePath())
                 .putString("last_report_date", today)
-                .putString("last_message", "Đã tải & giải nén " + fileName)
+                .putString("last_public_zip_uri", publicRef.uri == null ? "" : publicRef.uri.toString())
+                .putString("last_public_zip_legacy_path", publicRef.legacyPath == null ? "" : publicRef.legacyPath)
+                .putLong("last_zip_delete_at", deleteAt)
+                .putString("last_message", "Đã tải & giải nén " + fileName + ". ZIP sẽ tự xóa sau 24 giờ.")
                 .apply();
+
+        scheduleZipCleanup(context, fileName, zipFile.getAbsolutePath(), publicRef, deleteAt);
         return fileName;
     }
 
@@ -103,6 +114,33 @@ public final class ReportStore {
         activity.startActivity(Intent.createChooser(share, "Gửi báo cáo qua Tammi"));
     }
 
+    private static void scheduleZipCleanup(Context context, String fileName, String internalPath,
+                                           PublicZipRef publicRef, long when) {
+        AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+        if (am == null) return;
+
+        Intent i = new Intent(context, ZipCleanupReceiver.class)
+                .putExtra("internal_zip_path", internalPath)
+                .putExtra("public_zip_uri", publicRef.uri == null ? "" : publicRef.uri.toString())
+                .putExtra("public_legacy_path", publicRef.legacyPath == null ? "" : publicRef.legacyPath);
+
+        int requestCode = 7400 + Math.abs(fileName.hashCode() % 100000);
+        PendingIntent pi = PendingIntent.getBroadcast(
+                context,
+                requestCode,
+                i,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        if (Build.VERSION.SDK_INT >= 31 && am.canScheduleExactAlarms()) {
+            am.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, when, pi);
+        } else if (Build.VERSION.SDK_INT >= 23) {
+            am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, when, pi);
+        } else {
+            am.set(AlarmManager.RTC_WAKEUP, when, pi);
+        }
+    }
+
     private static void validateZipDate(byte[] data, String today) throws Exception {
         int count = 0;
         boolean hasExcel = false;
@@ -139,7 +177,7 @@ public final class ReportStore {
         }
     }
 
-    private static void savePublicDownload(Context context, String fileName, byte[] data) throws Exception {
+    private static PublicZipRef savePublicDownload(Context context, String fileName, byte[] data) throws Exception {
         if (Build.VERSION.SDK_INT >= 29) {
             ContentValues cv = new ContentValues();
             cv.put(MediaStore.Downloads.DISPLAY_NAME, fileName);
@@ -155,12 +193,15 @@ public final class ReportStore {
             cv.clear();
             cv.put(MediaStore.Downloads.IS_PENDING, 0);
             context.getContentResolver().update(uri, cv, null, null);
+            return new PublicZipRef(uri, null);
         } else {
             File dir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "ViettelCaoBang/BaoCaoNgay");
             if (!dir.exists() && !dir.mkdirs()) throw new Exception("Không tạo được thư mục Downloads");
-            try (FileOutputStream fos = new FileOutputStream(new File(dir, fileName))) {
+            File out = new File(dir, fileName);
+            try (FileOutputStream fos = new FileOutputStream(out)) {
                 fos.write(data);
             }
+            return new PublicZipRef(null, out.getAbsolutePath());
         }
     }
 
@@ -178,5 +219,15 @@ public final class ReportStore {
         }
         //noinspection ResultOfMethodCallIgnored
         f.delete();
+    }
+
+    private static final class PublicZipRef {
+        final Uri uri;
+        final String legacyPath;
+
+        PublicZipRef(Uri uri, String legacyPath) {
+            this.uri = uri;
+            this.legacyPath = legacyPath;
+        }
     }
 }
