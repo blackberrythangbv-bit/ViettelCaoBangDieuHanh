@@ -2,172 +2,192 @@ package vn.viettel.caobang.kpitammi;
 
 import android.Manifest;
 import android.app.Activity;
-import android.app.AlarmManager;
-import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
-import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.Settings;
+import android.text.InputType;
 import android.view.Gravity;
-import android.view.View;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Locale;
-
 public class MainActivity extends Activity {
+    private EditText edtUrl;
+    private EditText edtHour;
+    private EditText edtMinute;
     private TextView status;
-    private TextView scheduleInfo;
+    private SharedPreferences prefs;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ReportScheduler.scheduleNext0730(this);
+        prefs = getSharedPreferences(AppConfig.PREFS, MODE_PRIVATE);
+        ensureDefaults();
         requestNotificationPermissionIfNeeded();
         buildUi();
+        ReportScheduler.scheduleConfigured(this);
         refreshStatus();
     }
 
+    private void ensureDefaults() {
+        SharedPreferences.Editor e = prefs.edit();
+        if (!prefs.contains(AppConfig.KEY_SOURCE_URL)) e.putString(AppConfig.KEY_SOURCE_URL, AppConfig.DEFAULT_SOURCE_URL);
+        if (!prefs.contains(AppConfig.KEY_HOUR)) e.putInt(AppConfig.KEY_HOUR, AppConfig.DEFAULT_HOUR);
+        if (!prefs.contains(AppConfig.KEY_MINUTE)) e.putInt(AppConfig.KEY_MINUTE, AppConfig.DEFAULT_MINUTE);
+        if (!prefs.contains(AppConfig.KEY_AUTO_ENABLED)) e.putBoolean(AppConfig.KEY_AUTO_ENABLED, true);
+        e.apply();
+    }
+
     private void buildUi() {
+        ScrollView scroll = new ScrollView(this);
         LinearLayout root = new LinearLayout(this);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setPadding(dp(22), dp(28), dp(22), dp(22));
-        root.setBackgroundColor(Color.rgb(247, 249, 251));
+        root.setPadding(dp(24), dp(22), dp(24), dp(24));
+        root.setBackgroundColor(Color.rgb(250, 250, 250));
+        scroll.addView(root, new ScrollView.LayoutParams(-1, -2));
 
         TextView title = new TextView(this);
-        title.setText("TỰ ĐỘNG LẤY BÁO CÁO KPI");
-        title.setTextSize(23);
-        title.setTextColor(Color.rgb(226, 13, 23));
-        title.setGravity(Gravity.CENTER);
+        title.setText("KPI → TAMMI");
+        title.setTextSize(29);
+        title.setTextColor(Color.rgb(80, 80, 80));
         title.setTypeface(null, 1);
         root.addView(title, new LinearLayout.LayoutParams(-1, -2));
 
         TextView sub = new TextView(this);
-        sub.setText("VIETTEL CAO BẰNG • KPI / TAMMI");
-        sub.setTextSize(14);
-        sub.setGravity(Gravity.CENTER);
-        sub.setTextColor(Color.DKGRAY);
+        sub.setText("Tự tải ZIP • Giải nén • 1 chạm gửi Tammi");
+        sub.setTextSize(18);
+        sub.setTextColor(Color.rgb(95, 95, 95));
         LinearLayout.LayoutParams subLp = new LinearLayout.LayoutParams(-1, -2);
-        subLp.setMargins(0, dp(6), 0, dp(24));
+        subLp.setMargins(0, dp(2), 0, dp(26));
         root.addView(sub, subLp);
 
-        status = cardText("Trạng thái: chưa chạy");
-        root.addView(status, cardLp());
+        edtUrl = new EditText(this);
+        edtUrl.setHint("URL tải file ZIP báo cáo");
+        edtUrl.setSingleLine(true);
+        edtUrl.setTextSize(18);
+        edtUrl.setInputType(InputType.TYPE_CLASS_TEXT | InputType.TYPE_TEXT_VARIATION_URI);
+        edtUrl.setText(prefs.getString(AppConfig.KEY_SOURCE_URL, AppConfig.DEFAULT_SOURCE_URL));
+        root.addView(edtUrl, new LinearLayout.LayoutParams(-1, dp(58)));
 
-        scheduleInfo = cardText("Lịch tự động: 07:30 hằng ngày");
-        LinearLayout.LayoutParams infoLp = cardLp();
-        infoLp.setMargins(0, dp(10), 0, dp(18));
-        root.addView(scheduleInfo, infoLp);
+        edtHour = new EditText(this);
+        edtHour.setSingleLine(true);
+        edtHour.setTextSize(18);
+        edtHour.setInputType(InputType.TYPE_CLASS_NUMBER);
+        edtHour.setText(String.valueOf(prefs.getInt(AppConfig.KEY_HOUR, AppConfig.DEFAULT_HOUR)));
+        root.addView(edtHour, new LinearLayout.LayoutParams(-1, dp(52)));
 
-        Button fetch = actionButton("LẤY BÁO CÁO NGAY", Color.rgb(226, 13, 23));
-        fetch.setOnClickListener(v -> {
-            Toast.makeText(this, "Đang lấy báo cáo ở chế độ ẩn...", Toast.LENGTH_SHORT).show();
-            AutoReportService.startNow(this, 0, true);
-            status.setText("Trạng thái: đang lấy báo cáo...");
+        edtMinute = new EditText(this);
+        edtMinute.setSingleLine(true);
+        edtMinute.setTextSize(18);
+        edtMinute.setInputType(InputType.TYPE_CLASS_NUMBER);
+        edtMinute.setText(String.valueOf(prefs.getInt(AppConfig.KEY_MINUTE, AppConfig.DEFAULT_MINUTE)));
+        LinearLayout.LayoutParams minLp = new LinearLayout.LayoutParams(-1, dp(52));
+        minLp.setMargins(0, 0, 0, dp(10));
+        root.addView(edtMinute, minLp);
+
+        Button save = oldButton("LƯU & BẬT TỰ ĐỘNG");
+        save.setOnClickListener(v -> {
+            if (!saveConfig(true)) return;
+            ReportScheduler.scheduleConfigured(this);
+            refreshStatus();
+            Toast.makeText(this, "Đã lưu. Tự động lấy báo cáo hằng ngày theo giờ đã đặt.", Toast.LENGTH_LONG).show();
         });
-        root.addView(fetch, buttonLp());
+        root.addView(save, buttonLp());
 
-        Button login = actionButton("ĐĂNG NHẬP WEB APP", Color.rgb(80, 80, 80));
-        login.setOnClickListener(v -> startActivity(new Intent(this, LoginActivity.class)));
-        root.addView(login, buttonLp());
+        Button run = oldButton("CHẠY THỬ NGAY");
+        run.setOnClickListener(v -> {
+            if (!saveConfig(false)) return;
+            prefs.edit().putString("last_message", "Đang tải báo cáo...").apply();
+            refreshStatus();
+            AutoReportService.startNow(this, 0, true);
+            Toast.makeText(this, "Đang tải báo cáo từ nguồn đã cấu hình.", Toast.LENGTH_SHORT).show();
+        });
+        root.addView(run, buttonLp());
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            Button exact = actionButton("CẤP QUYỀN CHẠY 07:30 CHÍNH XÁC", Color.rgb(130, 10, 18));
-            exact.setOnClickListener(v -> requestExactAlarm());
-            root.addView(exact, buttonLp());
-        }
-
-        Button openFolder = actionButton("MỞ THƯ MỤC BÁO CÁO", Color.rgb(90, 90, 90));
-        openFolder.setOnClickListener(v -> {
+        Button send = oldButton("GỬI TAMMI");
+        send.setOnClickListener(v -> {
             try {
-                Intent i = new Intent(Intent.ACTION_VIEW);
-                i.setData(Uri.parse("content://com.android.externalstorage.documents/root/primary"));
-                i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                startActivity(i);
-            } catch (Exception e) {
-                Toast.makeText(this, "Báo cáo lưu trong Download/ViettelCaoBang/BaoCaoNgay", Toast.LENGTH_LONG).show();
+                ReportStore.shareLatest(this);
+            } catch (Exception ex) {
+                Toast.makeText(this, ex.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
-        root.addView(openFolder, buttonLp());
+        root.addView(send, buttonLp());
 
-        TextView note = new TextView(this);
-        note.setText("Báo cáo được lấy trực tiếp từ Web App gốc. App chạy nền lúc 07:30; nếu lỗi mạng sẽ thử lại lúc 07:45, 08:00 và 08:15. Cần đăng nhập Web App một lần trong app này để lưu phiên đăng nhập.");
-        note.setTextSize(13);
-        note.setTextColor(Color.DKGRAY);
-        LinearLayout.LayoutParams noteLp = new LinearLayout.LayoutParams(-1, -2);
-        noteLp.setMargins(0, dp(18), 0, 0);
-        root.addView(note, noteLp);
+        status = new TextView(this);
+        status.setTextSize(16);
+        status.setTextColor(Color.rgb(95, 95, 95));
+        status.setGravity(Gravity.START);
+        LinearLayout.LayoutParams stLp = new LinearLayout.LayoutParams(-1, -2);
+        stLp.setMargins(0, dp(22), 0, 0);
+        root.addView(status, stLp);
 
-        setContentView(root);
+        setContentView(scroll);
     }
 
-    private TextView cardText(String text) {
-        TextView t = new TextView(this);
-        t.setText(text);
-        t.setTextSize(15);
-        t.setTextColor(Color.rgb(35,35,35));
-        t.setPadding(dp(14), dp(14), dp(14), dp(14));
-        t.setBackgroundColor(Color.WHITE);
-        return t;
-    }
-
-    private LinearLayout.LayoutParams cardLp() {
-        return new LinearLayout.LayoutParams(-1, -2);
-    }
-
-    private Button actionButton(String text, int color) {
+    private Button oldButton(String text) {
         Button b = new Button(this);
         b.setText(text);
-        b.setTextColor(Color.WHITE);
-        b.setTextSize(14);
+        b.setTextSize(16);
+        b.setTextColor(Color.rgb(20, 20, 20));
         b.setAllCaps(false);
-        b.setBackgroundColor(color);
+        b.setGravity(Gravity.CENTER);
+        b.setBackgroundColor(Color.rgb(220, 222, 222));
         return b;
     }
 
     private LinearLayout.LayoutParams buttonLp() {
-        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, dp(52));
-        lp.setMargins(0, dp(10), 0, 0);
+        LinearLayout.LayoutParams lp = new LinearLayout.LayoutParams(-1, dp(58));
+        lp.setMargins(0, dp(8), 0, 0);
         return lp;
     }
 
-    private void refreshStatus() {
-        String last = getSharedPreferences("report_state", MODE_PRIVATE).getString("last_message", "Chưa có lần lấy báo cáo thành công");
-        long next = getSharedPreferences("report_state", MODE_PRIVATE).getLong("next_0730", 0L);
-        status.setText("Trạng thái: " + last);
-        if (next > 0) {
-            String s = new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(new Date(next));
-            scheduleInfo.setText("Lần tự động kế tiếp: " + s + " (giờ Việt Nam)");
+    private boolean saveConfig(boolean enableAuto) {
+        String url = edtUrl.getText().toString().trim();
+        if (url.isEmpty()) {
+            edtUrl.setText(AppConfig.DEFAULT_SOURCE_URL);
+            url = AppConfig.DEFAULT_SOURCE_URL;
         }
+        int h;
+        int m;
+        try {
+            h = Integer.parseInt(edtHour.getText().toString().trim());
+            m = Integer.parseInt(edtMinute.getText().toString().trim());
+        } catch (Exception e) {
+            Toast.makeText(this, "Giờ/phút không hợp lệ.", Toast.LENGTH_LONG).show();
+            return false;
+        }
+        if (h < 0 || h > 23 || m < 0 || m > 59) {
+            Toast.makeText(this, "Giờ phải 0-23, phút phải 0-59.", Toast.LENGTH_LONG).show();
+            return false;
+        }
+        SharedPreferences.Editor ed = prefs.edit()
+                .putString(AppConfig.KEY_SOURCE_URL, url)
+                .putInt(AppConfig.KEY_HOUR, h)
+                .putInt(AppConfig.KEY_MINUTE, m);
+        if (enableAuto) ed.putBoolean(AppConfig.KEY_AUTO_ENABLED, true);
+        ed.apply();
+        return true;
+    }
+
+    private void refreshStatus() {
+        if (status == null) return;
+        String msg = prefs.getString("last_message", "Sẵn sàng. URL báo cáo đã được cấu hình sẵn.");
+        int h = prefs.getInt(AppConfig.KEY_HOUR, AppConfig.DEFAULT_HOUR);
+        int m = prefs.getInt(AppConfig.KEY_MINUTE, AppConfig.DEFAULT_MINUTE);
+        boolean on = prefs.getBoolean(AppConfig.KEY_AUTO_ENABLED, true);
+        status.setText(msg + "\nTự động: " + (on ? String.format("%02d:%02d hằng ngày", h, m) : "đang tắt"));
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        if (status != null) refreshStatus();
-    }
-
-    private void requestExactAlarm() {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return;
-        AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
-        if (am != null && am.canScheduleExactAlarms()) {
-            Toast.makeText(this, "Đã có quyền chạy lịch chính xác.", Toast.LENGTH_SHORT).show();
-            ReportScheduler.scheduleNext0730(this);
-            return;
-        }
-        try {
-            Intent i = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
-                    Uri.parse("package:" + getPackageName()));
-            startActivity(i);
-        } catch (Exception e) {
-            Toast.makeText(this, "Hãy bật Báo thức & lời nhắc cho app trong Cài đặt.", Toast.LENGTH_LONG).show();
-        }
+        if (prefs != null) refreshStatus();
     }
 
     private void requestNotificationPermissionIfNeeded() {
