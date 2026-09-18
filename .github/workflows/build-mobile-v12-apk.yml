@@ -1,9 +1,9 @@
-name: Build APK V1.2.3 MOBILE FIT
+name: Build APK V1.2.4 AUTO REPORT 0730
 
 on:
   workflow_dispatch:
   push:
-    branches: [ main ]
+    branches: [ main, feature/auto-report-0730-v124 ]
     paths:
       - 'mobile-apk-v12/**'
       - '.github/workflows/build-mobile-v12-apk.yml'
@@ -32,11 +32,11 @@ jobs:
         run: gradle :app:assembleDebug --no-daemon
 
       - name: Rename APK
-        run: cp mobile-apk-v12/app/build/outputs/apk/debug/app-debug.apk ViettelCaoBangDieuHanh-V1.2.3-MOBILE-FIT.apk
+        run: cp mobile-apk-v12/app/build/outputs/apk/debug/app-debug.apk ViettelCaoBangDieuHanh-V1.2.4-AUTO-REPORT-0730.apk
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
-          name: ViettelCaoBangDieuHanh-V1.2.3-MOBILE-FIT-APK
-          path: ViettelCaoBangDieuHanh-V1.2.3-MOBILE-FIT.apk
+          name: ViettelCaoBangDieuHanh-V1.2.4-AUTO-REPORT-0730-APK
+          path: ViettelCaoBangDieuHanh-V1.2.4-AUTO-REPORT-0730.apk
           if-no-files-found: error
