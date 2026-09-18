@@ -1,8 +1,13 @@
 package com.viettel.caobang.dieuhanh;
 
+import android.app.AlarmManager;
+import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.drawable.GradientDrawable;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.Gravity;
 import android.widget.Button;
 import android.widget.FrameLayout;
@@ -14,8 +19,9 @@ public class MainActivityV124 extends MainActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        ReportScheduler.scheduleNext(this);
         addReportButton();
+        ensureExactAlarmAccessOnce();
+        ReportScheduler.scheduleNext(this);
     }
 
     private void addReportButton() {
@@ -37,6 +43,29 @@ public class MainActivityV124 extends MainActivity {
         addContentView(reportButton, lp);
 
         reportButton.setOnClickListener(v -> fetchReportNow());
+    }
+
+    private void ensureExactAlarmAccessOnce() {
+        if (Build.VERSION.SDK_INT < 31) return;
+        AlarmManager am = (AlarmManager) getSystemService(ALARM_SERVICE);
+        if (am == null || am.canScheduleExactAlarms()) return;
+
+        boolean asked = getSharedPreferences("vt_report_auto", MODE_PRIVATE)
+                .getBoolean("asked_exact_alarm", false);
+        if (asked) return;
+        getSharedPreferences("vt_report_auto", MODE_PRIVATE)
+                .edit().putBoolean("asked_exact_alarm", true).apply();
+
+        try {
+            Toast.makeText(this,
+                    "Bật quyền Báo thức chính xác để tự lấy báo cáo đúng 07:30.",
+                    Toast.LENGTH_LONG).show();
+            Intent i = new Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM,
+                    Uri.parse("package:" + getPackageName()));
+            startActivity(i);
+        } catch (Exception ignored) {
+            // Nếu thiết bị không có màn hình quyền riêng, scheduler sẽ tự dùng chế độ gần 07:30.
+        }
     }
 
     private void fetchReportNow() {
