@@ -1,0 +1,36 @@
+name: Build KPI Tammi Standalone APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ feature/kpi-tammi-standalone-v2 ]
+    paths:
+      - 'kpi-tammi-standalone/**'
+      - '.github/workflows/build-kpi-tammi-standalone.yml'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - name: Build APK
+        working-directory: kpi-tammi-standalone
+        run: gradle :app:assembleDebug --no-daemon
+      - name: Rename APK
+        run: cp kpi-tammi-standalone/app/build/outputs/apk/debug/app-debug.apk Tu-dong-gui-BC-KPI-Tammi-V2.0.apk
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Tu-dong-gui-BC-KPI-Tammi-V2.0-APK
+          path: Tu-dong-gui-BC-KPI-Tammi-V2.0.apk
+          if-no-files-found: error
