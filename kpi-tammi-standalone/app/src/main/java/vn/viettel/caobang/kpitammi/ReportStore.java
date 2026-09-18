@@ -30,6 +30,14 @@ import java.util.zip.ZipInputStream;
 public final class ReportStore {
     private ReportStore() {}
 
+    // Giữ tương thích với renderer WebView cũ nếu cần dùng lại.
+    public static String saveZip(Context context, String fileName, String base64) throws Exception {
+        byte[] data;
+        if (Build.VERSION.SDK_INT >= 26) data = java.util.Base64.getDecoder().decode(base64);
+        else data = android.util.Base64.decode(base64, android.util.Base64.DEFAULT);
+        return saveZipBytes(context, data);
+    }
+
     public static String saveZipBytes(Context context, byte[] data) throws Exception {
         if (data == null || data.length < 10000) throw new Exception("ZIP quá nhỏ, nghi dữ liệu chưa hoàn tất");
         String today = todayDmy();
