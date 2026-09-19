@@ -8,6 +8,7 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.os.Build;
 
@@ -27,12 +28,22 @@ public class AlarmReceiver extends BroadcastReceiver {
     private static final int REQ_RETRY = 721;
     private static final int NOTIFY_READY = 1301;
     private static final int NOTIFY_WAIT = 1302;
-    private static final DateTimeFormatter VI_DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy", new Locale("vi", "VN"));
+
+    private static final String PREFS = "kpi_tammi_schedule";
+    private static final String KEY_HOUR = "hour";
+    private static final String KEY_MINUTE = "minute";
+    private static final int DEFAULT_HOUR = 7;
+    private static final int DEFAULT_MINUTE = 20;
+    private static final int RETRY_WINDOW_MINUTES = 100;
+
+    private static final DateTimeFormatter VI_DATE =
+            DateTimeFormatter.ofPattern("dd/MM/yyyy", new Locale("vi", "VN"));
 
     @Override
     public void onReceive(Context context, Intent intent) {
         PendingResult pendingResult = goAsync();
         Context app = context.getApplicationContext();
+
         new Thread(() -> {
             try {
                 List<File> files = ReportClient.downloadToday(app);
@@ -40,16 +51,17 @@ public class AlarmReceiver extends BroadcastReceiver {
                 scheduleDaily(app);
             } catch (ReportClient.StaleReportException stale) {
                 ZonedDateTime now = ZonedDateTime.now(ReportClient.VN_ZONE);
-                if (now.getHour() < 9) {
+                if (canRetry(app, now)) {
                     scheduleRetry(app, 15);
                     notifyWaiting(app, "Nguồn chưa cập nhật. Tự kiểm tra lại sau 15 phút.");
                 } else {
                     scheduleDaily(app);
-                    notifyWaiting(app, "Nguồn KPI chưa cập nhật trước 09:00. App đã chặn báo cáo cũ.");
+                    notifyWaiting(app, "Nguồn KPI chưa cập nhật trong cửa sổ retry. App đã chặn báo cáo cũ.");
                 }
             } catch (Exception e) {
                 ZonedDateTime now = ZonedDateTime.now(ReportClient.VN_ZONE);
-                if (now.getHour() < 9) scheduleRetry(app, 15); else scheduleDaily(app);
+                if (canRetry(app, now)) scheduleRetry(app, 15);
+                else scheduleDaily(app);
                 notifyWaiting(app, "Lỗi tải báo cáo: " + safeMessage(e));
             } finally {
                 pendingResult.finish();
@@ -57,32 +69,113 @@ public class AlarmReceiver extends BroadcastReceiver {
         }, "KpiTammiAlarm").start();
     }
 
+    public static void saveScheduleTime(Context context, int hour, int minute) {
+        int safeHour = Math.max(0, Math.min(23, hour));
+        int safeMinute = Math.max(0, Math.min(59, minute));
+        prefs(context).edit()
+                .putInt(KEY_HOUR, safeHour)
+                .putInt(KEY_MINUTE, safeMinute)
+                .apply();
+    }
+
+    public static int getScheduleHour(Context context) {
+        return prefs(context).getInt(KEY_HOUR, DEFAULT_HOUR);
+    }
+
+    public static int getScheduleMinute(Context context) {
+        return prefs(context).getInt(KEY_MINUTE, DEFAULT_MINUTE);
+    }
+
+    public static String formatScheduleTime(Context context) {
+        return String.format(Locale.US, "%02d:%02d",
+                getScheduleHour(context), getScheduleMinute(context));
+    }
+
     public static void scheduleDaily(Context context) {
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
+
+        int hour = getScheduleHour(context);
+        int minute = getScheduleMinute(context);
+
         ZonedDateTime now = ZonedDateTime.now(ReportClient.VN_ZONE);
-        ZonedDateTime next = now.withHour(7).withMinute(20).withSecond(0).withNano(0);
+        ZonedDateTime next = now.withHour(hour).withMinute(minute).withSecond(0).withNano(0);
         if (!next.isAfter(now)) next = next.plusDays(1);
-        PendingIntent pi = receiverIntent(context, REQ_DAILY, "vn.viettel.caobang.kpitammi.DAILY");
-        am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, next.toInstant().toEpochMilli(), pi);
+
+        PendingIntent pi = receiverIntent(
+                context,
+                REQ_DAILY,
+                "vn.viettel.caobang.kpitammi.DAILY"
+        );
+
+        am.setAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                next.toInstant().toEpochMilli(),
+                pi
+        );
     }
 
     public static void scheduleRetry(Context context, int minutes) {
         AlarmManager am = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         long when = System.currentTimeMillis() + Math.max(1, minutes) * 60_000L;
-        PendingIntent pi = receiverIntent(context, REQ_RETRY, "vn.viettel.caobang.kpitammi.RETRY");
-        am.setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, when, pi);
+
+        PendingIntent pi = receiverIntent(
+                context,
+                REQ_RETRY,
+                "vn.viettel.caobang.kpitammi.RETRY"
+        );
+
+        am.setAndAllowWhileIdle(
+                AlarmManager.RTC_WAKEUP,
+                when,
+                pi
+        );
     }
 
-    private static PendingIntent receiverIntent(Context context, int requestCode, String action) {
+    private static boolean canRetry(Context context, ZonedDateTime now) {
+        int hour = getScheduleHour(context);
+        int minute = getScheduleMinute(context);
+
+        ZonedDateTime scheduled = now
+                .withHour(hour)
+                .withMinute(minute)
+                .withSecond(0)
+                .withNano(0);
+
+        ZonedDateTime cutoff = scheduled.plusMinutes(RETRY_WINDOW_MINUTES);
+        return !now.isAfter(cutoff);
+    }
+
+    private static SharedPreferences prefs(Context context) {
+        return context.getSharedPreferences(PREFS, Context.MODE_PRIVATE);
+    }
+
+    private static PendingIntent receiverIntent(
+            Context context,
+            int requestCode,
+            String action
+    ) {
         Intent i = new Intent(context, AlarmReceiver.class);
         i.setAction(action);
-        return PendingIntent.getBroadcast(context, requestCode, i, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        return PendingIntent.getBroadcast(
+                context,
+                requestCode,
+                i,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
     }
 
     public static void ensureNotificationChannel(Context context) {
         if (Build.VERSION.SDK_INT >= 26) {
-            NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-            NotificationChannel ch = new NotificationChannel(CHANNEL_ID, "KPI → Tammi", NotificationManager.IMPORTANCE_HIGH);
+            NotificationManager nm =
+                    (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+
+            NotificationChannel ch = new NotificationChannel(
+                    CHANNEL_ID,
+                    "KPI → Tammi",
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+
             ch.setDescription("Trạng thái tải báo cáo KPI hằng ngày");
             nm.createNotificationChannel(ch);
         }
@@ -95,42 +188,75 @@ public class AlarmReceiver extends BroadcastReceiver {
         Intent open = new Intent(context, MainActivity.class);
         open.putExtra("shareNow", true);
         open.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
-        PendingIntent pi = PendingIntent.getActivity(context, 1303, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        PendingIntent pi = PendingIntent.getActivity(
+                context,
+                1303,
+                open,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
 
         String date = LocalDate.now(ReportClient.VN_ZONE).format(VI_DATE);
-        NotificationCompat.Builder b = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(android.R.drawable.stat_sys_download_done)
-                .setContentTitle("Báo cáo KPI " + date + " đã sẵn sàng")
-                .setContentText(count + " file đã được hậu kiểm đúng ngày. Chạm để gửi qua Tammi.")
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(count + " file báo cáo đã tải và hậu kiểm đúng ngày " + date + ". Chạm thông báo để mở màn hình chia sẻ qua Tammi."))
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setAutoCancel(true)
-                .setContentIntent(pi);
-        ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE)).notify(NOTIFY_READY, b.build());
+
+        NotificationCompat.Builder b =
+                new NotificationCompat.Builder(context, CHANNEL_ID)
+                        .setSmallIcon(android.R.drawable.stat_sys_download_done)
+                        .setContentTitle("Báo cáo KPI " + date + " đã sẵn sàng")
+                        .setContentText(count + " file đã được hậu kiểm đúng ngày. Chạm để gửi qua Tammi.")
+                        .setStyle(
+                                new NotificationCompat.BigTextStyle().bigText(
+                                        count + " file báo cáo đã tải và hậu kiểm đúng ngày "
+                                                + date
+                                                + ". Chạm thông báo để mở màn hình chia sẻ qua Tammi."
+                                )
+                        )
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setAutoCancel(true)
+                        .setContentIntent(pi);
+
+        ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE))
+                .notify(NOTIFY_READY, b.build());
     }
 
     private static void notifyWaiting(Context context, String message) {
         ensureNotificationChannel(context);
         if (!canNotify(context)) return;
+
         Intent open = new Intent(context, MainActivity.class);
-        PendingIntent pi = PendingIntent.getActivity(context, 1304, open, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
-        NotificationCompat.Builder b = new NotificationCompat.Builder(context, CHANNEL_ID)
-                .setSmallIcon(android.R.drawable.stat_notify_error)
-                .setContentTitle("KPI → Tammi: chưa gửi")
-                .setContentText(message)
-                .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
-                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-                .setAutoCancel(true)
-                .setContentIntent(pi);
-        ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE)).notify(NOTIFY_WAIT, b.build());
+
+        PendingIntent pi = PendingIntent.getActivity(
+                context,
+                1304,
+                open,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE
+        );
+
+        NotificationCompat.Builder b =
+                new NotificationCompat.Builder(context, CHANNEL_ID)
+                        .setSmallIcon(android.R.drawable.stat_notify_error)
+                        .setContentTitle("KPI → Tammi: chưa gửi")
+                        .setContentText(message)
+                        .setStyle(new NotificationCompat.BigTextStyle().bigText(message))
+                        .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                        .setAutoCancel(true)
+                        .setContentIntent(pi);
+
+        ((NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE))
+                .notify(NOTIFY_WAIT, b.build());
     }
 
     private static boolean canNotify(Context context) {
-        return Build.VERSION.SDK_INT < 33 || ContextCompat.checkSelfPermission(context, Manifest.permission.POST_NOTIFICATIONS) == PackageManager.PERMISSION_GRANTED;
+        return Build.VERSION.SDK_INT < 33
+                || ContextCompat.checkSelfPermission(
+                        context,
+                        Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED;
     }
 
     private static String safeMessage(Throwable e) {
         String s = e.getMessage();
-        return s == null || s.trim().isEmpty() ? e.getClass().getSimpleName() : s;
+        return s == null || s.trim().isEmpty()
+                ? e.getClass().getSimpleName()
+                : s;
     }
 }
