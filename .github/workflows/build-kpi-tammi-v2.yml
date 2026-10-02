@@ -20,20 +20,20 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Verify runner tools
+      - name: Verify Java
         shell: bash
         run: |
           set -euxo pipefail
           java -version
-          echo "ANDROID_HOME=$ANDROID_HOME"
-          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
-          which sdkmanager || true
-          ls -la "$ANDROID_HOME" || true
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
 
       - name: Install Android SDK 35
         shell: bash
         run: |
           set -euxo pipefail
+          sdkmanager --version
           yes | sdkmanager --licenses >/dev/null || true
           sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
