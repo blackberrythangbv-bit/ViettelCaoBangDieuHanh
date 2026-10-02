@@ -18,7 +18,7 @@ import java.util.zip.ZipInputStream;
 
 public final class ApiClient {
     public static final String BASE_URL =
-            "https://script.google.com/macros/s/AKfycbzjwYws7Sx9YNrr67IowsaaaAYaGA3zr8GID1f-p6e5_Wx4qbrmShtBhbbbpyU06chz/exec?token=CBG-KPI-TAMMI-2026";
+            "https://script.google.com/macros/s/AKfycbz7fmyLNjEUti_8JwIjCRQv-u-Bhe4D2jTwCtBEOZtecQSgqF3q7wSj6qhaPvTdTkas/exec?token=CBG-KPI-TAMMI-2026";
 
     private ApiClient() {}
 
