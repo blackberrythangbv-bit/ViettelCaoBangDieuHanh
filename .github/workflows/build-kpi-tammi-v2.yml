@@ -8,38 +8,55 @@ on:
       - "KPI_Tammi_V2_Android/**"
       - ".github/workflows/build-kpi-tammi-v2.yml"
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    timeout-minutes: 20
+    timeout-minutes: 25
+
     steps:
-      - name: Checkout
+      - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Set up Java 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: "17"
+      - name: Verify runner tools
+        shell: bash
+        run: |
+          set -euxo pipefail
+          java -version
+          echo "ANDROID_HOME=$ANDROID_HOME"
+          echo "ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT"
+          which sdkmanager || true
+          ls -la "$ANDROID_HOME" || true
 
-      - name: Set up Android SDK
-        uses: android-actions/setup-android@v3
+      - name: Install Android SDK 35
+        shell: bash
+        run: |
+          set -euxo pipefail
+          yes | sdkmanager --licenses >/dev/null || true
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0"
 
-      - name: Install Android 35
-        run: sdkmanager "platforms;android-35" "build-tools;35.0.0"
-
-      - name: Set up Gradle 8.7
-        uses: gradle/actions/setup-gradle@v4
-        with:
-          gradle-version: "8.7"
+      - name: Install Gradle 8.7
+        shell: bash
+        run: |
+          set -euxo pipefail
+          curl -L --retry 3 --fail -o /tmp/gradle.zip https://services.gradle.org/distributions/gradle-8.7-bin.zip
+          unzip -q /tmp/gradle.zip -d /opt/gradle
+          echo "/opt/gradle/gradle-8.7/bin" >> "$GITHUB_PATH"
 
       - name: Build debug APK
-        run: gradle -p KPI_Tammi_V2_Android assembleDebug --stacktrace
+        shell: bash
+        run: |
+          set -euxo pipefail
+          export PATH="/opt/gradle/gradle-8.7/bin:$PATH"
+          gradle --version
+          gradle -p KPI_Tammi_V2_Android clean assembleDebug --stacktrace
+          test -f KPI_Tammi_V2_Android/app/build/outputs/apk/debug/app-debug.apk
+          cp KPI_Tammi_V2_Android/app/build/outputs/apk/debug/app-debug.apk KPI_Tammi_V2_GitHub.apk
+          ls -lh KPI_Tammi_V2_GitHub.apk
 
-      - name: Rename APK
-        run: cp KPI_Tammi_V2_Android/app/build/outputs/apk/debug/app-debug.apk KPI_Tammi_V2_GitHub.apk
-
-      - name: Upload APK
+      - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: KPI_Tammi_V2_GitHub
