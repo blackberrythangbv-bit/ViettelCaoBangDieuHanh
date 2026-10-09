@@ -74,7 +74,7 @@ public class MainActivity extends Activity {
         titles.setOrientation(LinearLayout.VERTICAL);
         titles.setPadding(dp(16),0,0,0);
         TextView title = text("KPI → Tammi", 34, navy, Typeface.BOLD);
-        TextView ver = text("KPI DNS V2 · GitHub Build 2.0", 20, muted, Typeface.NORMAL);
+        TextView ver = text("KPI DNS V2 · GitHub Build 2.0.1", 20, muted, Typeface.NORMAL);
         titles.addView(title); titles.addView(ver);
         head.addView(titles, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT,1));
         root.addView(head);
@@ -136,7 +136,7 @@ public class MainActivity extends Activity {
                 exec.execute(() -> {
                     try {
                         int n = ApiClient.countZipEntries(f);
-                        runOnUiThread(() -> setOk("Đã có báo cáo cục bộ · " + n + " file", "Có thể chia sẻ ngay."));
+                        runOnUiThread(() -> setOk("Đã có báo cáo cục bộ · " + n + " file", "Khi chia sẻ, ứng dụng sẽ tải lại bản mới nhất."));
                     } catch (Exception ignored) {}
                 });
             }
@@ -193,7 +193,7 @@ public class MainActivity extends Activity {
                         .putString("last_file", f.getAbsolutePath())
                         .putLong("last_manual_ok", System.currentTimeMillis())
                         .apply();
-                runOnUiThread(() -> setOk("Đã tải đúng ngày · 8 file", "Bộ báo cáo đã hậu kiểm. Có thể chia sẻ qua Tammi."));
+                runOnUiThread(() -> setOk("Đã tải bản mới nhất · 8 file", "Bộ báo cáo đã hậu kiểm. Có thể chia sẻ qua Tammi."));
             } catch (Exception e) {
                 runOnUiThread(() -> setError("Không tải được báo cáo", e.getMessage()));
             }
@@ -204,8 +204,7 @@ public class MainActivity extends Activity {
         setBusy("Đang chuẩn bị 8 file để chia sẻ…");
         exec.execute(() -> {
             try {
-                File zip = latestZip;
-                if (zip == null || !zip.exists()) zip = ApiClient.downloadLatest(this);
+                File zip = ApiClient.downloadLatest(this);
                 latestZip = zip;
 
                 File dir = new File(getCacheDir(), "share_reports");
@@ -266,7 +265,9 @@ public class MainActivity extends Activity {
     }
 
     private String today() {
-        return new SimpleDateFormat("dd/MM/yyyy", Locale.US).format(new Date());
+        SimpleDateFormat format = new SimpleDateFormat("dd/MM/yyyy", Locale.US);
+        format.setTimeZone(java.util.TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
+        return format.format(new Date());
     }
 
     private String hhmm() {

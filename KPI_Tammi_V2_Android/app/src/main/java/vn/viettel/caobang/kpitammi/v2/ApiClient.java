@@ -37,39 +37,63 @@ public final class ApiClient {
     public static File downloadLatest(Context context) throws Exception {
         JSONObject info = info();
         int total = info.optInt("totalChunks", 0);
-        if (total <= 0) throw new Exception("Nguồn báo cáo không trả số khối hợp lệ");
+        if (total <= 0 || total > 400) throw new Exception("Nguồn báo cáo không trả số khối hợp lệ");
 
+        int expectedSize = info.optInt("size", 0);
+        if (expectedSize <= 0 || expectedSize > 64 * 1024 * 1024) throw new Exception("Kích thước báo cáo không hợp lệ");
         ByteArrayOutputStream all = new ByteArrayOutputStream(Math.max(info.optInt("size", 0), 256 * 1024));
         for (int i = 0; i < total; i++) {
             JSONObject part = getJson(BASE_URL + "&action=chunk&index=" + i);
             if (!part.optBoolean("ok", false)) throw new Exception("Lỗi tải khối " + i + ": " + part.optString("error", ""));
+            if (part.optInt("index", -1) != i || part.optInt("totalChunks", -1) != total) throw new Exception("Nguồn báo cáo thay đổi trong lúc tải. Vui lòng tải lại.");
             byte[] bytes = Base64.decode(part.getString("dataBase64"), Base64.DEFAULT);
+            if (all.size() + bytes.length > expectedSize) throw new Exception("Dữ liệu báo cáo vượt kích thước nguồn");
             all.write(bytes);
         }
+
+        JSONObject after = info();
+        if (all.size() != expectedSize || after.optInt("size", -1) != expectedSize || !info.optString("modifiedTime").equals(after.optString("modifiedTime"))) throw new Exception("Báo cáo thay đổi hoặc tải thiếu dữ liệu. Vui lòng tải lại.");
 
         File dir = context.getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
         if (dir == null) dir = context.getFilesDir();
         if (!dir.exists() && !dir.mkdirs()) throw new Exception("Không tạo được thư mục lưu báo cáo");
 
-        File out = new File(dir, "KPI_ngay_latest.zip");
+        File out = File.createTempFile("KPI_download_", ".zip", dir);
         try (FileOutputStream fos = new FileOutputStream(out)) {
             fos.write(all.toByteArray());
         }
 
-        int entries = countZipEntries(out);
-        if (entries != 8) throw new Exception("Hậu kiểm thất bại: nhận " + entries + "/8 file");
-        return out;
+        int entries;
+        try { entries = countZipEntries(out); } catch (Exception e) { out.delete(); throw e; }
+        if (entries != 8) { out.delete(); throw new Exception("Hậu kiểm thất bại: nhận " + entries + "/8 file"); }
+        File target = new File(dir, "KPI_ngay_latest.zip");
+        java.nio.file.Files.move(out.toPath(), target.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+        return target;
     }
 
     public static int countZipEntries(File zip) throws Exception {
-        int n = 0;
+        int n = 0, png = 0, xlsx = 0;
+        java.util.HashSet<String> names = new java.util.HashSet<>();
         try (ZipInputStream zis = new ZipInputStream(new java.io.FileInputStream(zip))) {
             ZipEntry e;
             while ((e = zis.getNextEntry()) != null) {
-                if (!e.isDirectory()) n++;
+                if (!e.isDirectory()) {
+                    String name = e.getName();
+                    if (!names.add(name) || name.contains("/") || name.contains("\\")) throw new Exception("Tên file ZIP không hợp lệ");
+                    if (name.toLowerCase(java.util.Locale.ROOT).endsWith(".png")) png++;
+                    else if (name.toLowerCase(java.util.Locale.ROOT).endsWith(".xlsx")) xlsx++;
+                    else throw new Exception("Báo cáo chứa định dạng không hợp lệ");
+                    long size = 0;
+                    byte[] buffer = new byte[8192];
+                    int read;
+                    while ((read = zis.read(buffer)) != -1) { size += read; if (size > 32 * 1024 * 1024) throw new Exception("File báo cáo quá lớn"); }
+                    if (size == 0) throw new Exception("File báo cáo rỗng");
+                    n++;
+                }
                 zis.closeEntry();
             }
         }
+        if (png != 7 || xlsx != 1) throw new Exception("Bộ báo cáo phải có 7 PNG và 1 XLSX");
         return n;
     }
 
@@ -79,10 +103,12 @@ public final class ApiClient {
             URL url = new URL(address);
             c = (HttpURLConnection) url.openConnection();
             c.setInstanceFollowRedirects(true);
+            c.setUseCaches(false);
+            c.setRequestProperty("Cache-Control", "no-cache");
             c.setConnectTimeout(20000);
             c.setReadTimeout(60000);
             c.setRequestProperty("Accept", "application/json");
-            c.setRequestProperty("User-Agent", "KPI-Tammi-V2/2.0");
+            c.setRequestProperty("User-Agent", "KPI-Tammi-V2/2.0.1");
             int code = c.getResponseCode();
             InputStream in = code >= 200 && code < 400 ? c.getInputStream() : c.getErrorStream();
             if (in == null) throw new Exception("HTTP " + code);
