@@ -35,6 +35,7 @@ public final class ApiClient {
     }
 
     public static File downloadLatest(Context context) throws Exception {
+        String reportDay = reportDay();
         JSONObject info = info();
         int total = info.optInt("totalChunks", 0);
         if (total <= 0 || total > 400) throw new Exception("Nguồn báo cáo không trả số khối hợp lệ");
@@ -66,7 +67,8 @@ public final class ApiClient {
         int entries;
         try { entries = countZipEntries(out); } catch (Exception e) { out.delete(); throw e; }
         if (entries != 8) { out.delete(); throw new Exception("Hậu kiểm thất bại: nhận " + entries + "/8 file"); }
-        File target = new File(dir, "KPI_ngay_latest.zip");
+        if (!reportDay.equals(reportDay())) { out.delete(); throw new Exception("Ngày báo cáo đã thay đổi. Vui lòng tải lại."); }
+        File target = new File(dir, "Bao_cao_KPI_ngay_" + reportDay + ".zip");
         java.nio.file.Files.move(out.toPath(), target.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING);
         return target;
     }
@@ -74,16 +76,27 @@ public final class ApiClient {
     public static int countZipEntries(File zip) throws Exception {
         int n = 0, png = 0, xlsx = 0;
         java.util.HashSet<String> names = new java.util.HashSet<>();
+        java.util.HashSet<String> expected = new java.util.HashSet<>();
+        String day = reportDay();
+        expected.add("Bao_cao_KQ_HoanThanh_KPI_ngay_" + day + ".xlsx");
+        expected.add("KetQuaKPI_ngay_" + day + ".png");
+        for (String am : new String[]{"HOAIBT4","NUONGPM","THAODP7","LANHT22","HUEHT16","QUYENLTN"})
+            expected.add("ChiTieu_" + day + "_" + am + ".png");
         try (ZipInputStream zis = new ZipInputStream(new java.io.FileInputStream(zip))) {
             ZipEntry e;
             while ((e = zis.getNextEntry()) != null) {
                 if (!e.isDirectory()) {
                     String name = e.getName();
-                    if (!names.add(name) || name.contains("/") || name.contains("\\")) throw new Exception("Tên file ZIP không hợp lệ");
+                    if (!expected.contains(name) || !names.add(name) || name.contains("/") || name.contains("\\")) throw new Exception("Tên file ZIP không hợp lệ");
                     if (name.toLowerCase(java.util.Locale.ROOT).endsWith(".png")) png++;
                     else if (name.toLowerCase(java.util.Locale.ROOT).endsWith(".xlsx")) xlsx++;
                     else throw new Exception("Báo cáo chứa định dạng không hợp lệ");
-                    long size = 0;
+                    byte[] signature = new byte[name.endsWith(".png") ? 8 : 4];
+                    int got = 0, nread;
+                    while (got < signature.length && (nread = zis.read(signature, got, signature.length-got)) != -1) got += nread;
+                    byte[] required = name.endsWith(".png") ? new byte[]{(byte)137,80,78,71,13,10,26,10} : new byte[]{80,75,3,4};
+                    if (got != required.length || !java.util.Arrays.equals(signature, required)) throw new Exception("File hỏng hoặc sai định dạng: " + name);
+                    long size = got;
                     byte[] buffer = new byte[8192];
                     int read;
                     while ((read = zis.read(buffer)) != -1) { size += read; if (size > 32 * 1024 * 1024) throw new Exception("File báo cáo quá lớn"); }
@@ -93,8 +106,14 @@ public final class ApiClient {
                 zis.closeEntry();
             }
         }
-        if (png != 7 || xlsx != 1) throw new Exception("Bộ báo cáo phải có 7 PNG và 1 XLSX");
+        if (!names.equals(expected) || png != 7 || xlsx != 1) throw new Exception("Bộ báo cáo phải có 7 PNG và 1 XLSX");
         return n;
+    }
+
+    private static String reportDay() {
+        java.text.SimpleDateFormat f = new java.text.SimpleDateFormat("dd-MM-yyyy", java.util.Locale.US);
+        f.setTimeZone(java.util.TimeZone.getTimeZone("Asia/Ho_Chi_Minh"));
+        return f.format(new java.util.Date());
     }
 
     private static JSONObject getJson(String address) throws Exception {
@@ -108,7 +127,7 @@ public final class ApiClient {
             c.setConnectTimeout(20000);
             c.setReadTimeout(60000);
             c.setRequestProperty("Accept", "application/json");
-            c.setRequestProperty("User-Agent", "KPI-Tammi-V2/2.0.1");
+            c.setRequestProperty("User-Agent", "KPI-Tammi-V2/2.0.4");
             int code = c.getResponseCode();
             InputStream in = code >= 200 && code < 400 ? c.getInputStream() : c.getErrorStream();
             if (in == null) throw new Exception("HTTP " + code);
@@ -131,3 +150,4 @@ public final class ApiClient {
         }
     }
 }
+

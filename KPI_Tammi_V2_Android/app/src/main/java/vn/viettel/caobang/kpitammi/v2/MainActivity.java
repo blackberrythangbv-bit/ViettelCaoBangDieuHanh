@@ -35,6 +35,9 @@ public class MainActivity extends Activity {
     private final ExecutorService exec = Executors.newSingleThreadExecutor();
     private TextView statusTitle, statusSub, dateText, scheduleSub;
     private File latestZip;
+    private File pendingSaveZip;
+    private boolean busy;
+    private static final int SAVE_ZIP = 204;
 
     private int blue = Color.rgb(30, 105, 200);
     private int navy = Color.rgb(18, 47, 78);
@@ -45,6 +48,7 @@ public class MainActivity extends Activity {
         Scheduler.schedule(getApplicationContext());
         buildUi();
         restoreLocal();
+        if (b != null) { String path = b.getString("pending_save_zip"); if (path != null) pendingSaveZip = new File(path); }
     }
 
     @Override protected void onDestroy() {
@@ -74,7 +78,7 @@ public class MainActivity extends Activity {
         titles.setOrientation(LinearLayout.VERTICAL);
         titles.setPadding(dp(16),0,0,0);
         TextView title = text("KPI → Tammi", 34, navy, Typeface.BOLD);
-        TextView ver = text("KPI DNS V2 · GitHub Build 2.0.1", 20, muted, Typeface.NORMAL);
+        TextView ver = text("KPI DNS V2 · APK 2.0.4", 20, muted, Typeface.NORMAL);
         titles.addView(title); titles.addView(ver);
         head.addView(titles, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT,1));
         root.addView(head);
@@ -109,6 +113,7 @@ public class MainActivity extends Activity {
 
         root.addView(actionCard("⌕", "KIỂM TRA NGUỒN\nBÁO CÁO", "Kiểm tra và xác minh nguồn KPI→Tammi", v -> checkSource()));
         root.addView(actionCard("↓", "TẢI BÁO CÁO HÔM\nNAY", "Tải file báo cáo đúng ngày hiện tại", v -> downloadToday()));
+        root.addView(actionCard("↓", "LƯU FILE ZIP", "Chọn thư mục Downloads hoặc Drive để lưu", v -> saveZip()));
         root.addView(actionCard("●", "CHIA SẺ BÁO CÁO\nQUA TAMMI", "Chia sẻ toàn bộ 8 file đã hậu kiểm", v -> shareReports()));
 
         scheduleSub = text("", 17, muted, Typeface.NORMAL);
@@ -121,7 +126,7 @@ public class MainActivity extends Activity {
         safe.setPadding(dp(18),dp(18),dp(18),dp(18));
         safe.setBackground(strokeRound(Color.WHITE, Color.rgb(223,229,238), 18));
         safe.addView(text("CƠ CHẾ AN TOÀN", 19, navy, Typeface.BOLD));
-        safe.addView(text("• Chỉ nhận đúng nguồn KPI DNS V2\n• Hậu kiểm đủ 8 file trước khi cho chia sẻ\n• Không ghi nhận hoàn tất nếu ZIP lỗi/thiếu file\n• Tải nền theo lịch đã chọn", 16, muted, Typeface.NORMAL));
+        safe.addView(text("• Chỉ nhận đúng nguồn KPI DNS V2\n• Kiểm tra đúng ngày, đủ tên 6 AM và định dạng file\n• Không ghi nhận hoàn tất nếu ZIP lỗi/thiếu file\n• Tải nền theo lịch đã chọn", 16, muted, Typeface.NORMAL));
         root.addView(safe, marginTop(18));
 
         setContentView(sv);
@@ -136,8 +141,8 @@ public class MainActivity extends Activity {
                 exec.execute(() -> {
                     try {
                         int n = ApiClient.countZipEntries(f);
-                        runOnUiThread(() -> setOk("Đã có báo cáo cục bộ · " + n + " file", "Khi chia sẻ, ứng dụng sẽ tải lại bản mới nhất."));
-                    } catch (Exception ignored) {}
+                        runOnUiThread(() -> { if (!busy) setOk("Đã có báo cáo cục bộ · " + n + " file", "Đúng ngày hiện tại. Khi chia sẻ sẽ tải lại bản mới nhất."); });
+                    } catch (Exception e) { runOnUiThread(() -> { if (!busy) setError("Báo cáo cục bộ chưa hợp lệ", "Bấm tải báo cáo hôm nay để lấy bản mới."); }); }
                 });
             }
         }
@@ -170,6 +175,7 @@ public class MainActivity extends Activity {
     }
 
     private void checkSource() {
+        if (busy) return;
         setBusy("Đang kiểm tra nguồn…");
         exec.execute(() -> {
             try {
@@ -184,6 +190,7 @@ public class MainActivity extends Activity {
     }
 
     private void downloadToday() {
+        if (busy) return;
         setBusy("Đang tải và hậu kiểm 8 file…");
         exec.execute(() -> {
             try {
@@ -201,6 +208,7 @@ public class MainActivity extends Activity {
     }
 
     private void shareReports() {
+        if (busy) return;
         setBusy("Đang chuẩn bị 8 file để chia sẻ…");
         exec.execute(() -> {
             try {
@@ -233,12 +241,63 @@ public class MainActivity extends Activity {
                 s.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
                 s.putExtra(Intent.EXTRA_SUBJECT, "Báo cáo KPI ngày " + today());
                 runOnUiThread(() -> {
-                    setOk("Đã chuẩn bị đủ 8 file", "Chọn Zalo/Teams/ứng dụng và nhóm cần chia sẻ.");
+                    setOk("Đã chuẩn bị đủ 8 file", "Chọn Tammi và người/nhóm cần chia sẻ.");
                     startActivity(Intent.createChooser(s, "Chia sẻ báo cáo KPI"));
                 });
             } catch (Exception e) {
                 runOnUiThread(() -> setError("Không chia sẻ được", e.getMessage()));
             }
+        });
+    }
+
+    private void saveZip() {
+        if (busy) return;
+        setBusy("Đang tải ZIP để lưu…");
+        exec.execute(() -> {
+            try {
+                File zip = ApiClient.downloadLatest(this);
+                runOnUiThread(() -> {
+                    pendingSaveZip = zip;
+                    Intent save = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+                    save.addCategory(Intent.CATEGORY_OPENABLE);
+                    save.setType("application/zip");
+                    save.putExtra(Intent.EXTRA_TITLE, zip.getName());
+                    try { startActivityForResult(save, SAVE_ZIP); }
+                    catch (Exception e) { pendingSaveZip = null; setError("Không mở được nơi lưu", e.getMessage()); }
+                });
+            } catch (Exception e) { runOnUiThread(() -> setError("Không tải được ZIP", e.getMessage())); }
+        });
+    }
+
+    @Override protected void onSaveInstanceState(Bundle out) {
+        if (pendingSaveZip != null) out.putString("pending_save_zip", pendingSaveZip.getAbsolutePath());
+        super.onSaveInstanceState(out);
+    }
+
+    @Override protected void onActivityResult(int request, int result, Intent data) {
+        super.onActivityResult(request, result, data);
+        if (request != SAVE_ZIP) return;
+        final File source = pendingSaveZip;
+        pendingSaveZip = null;
+        if (result != RESULT_OK || data == null || data.getData() == null) {
+            setOk("Đã hủy lưu ZIP", "Báo cáo chưa được lưu vào thư mục đã chọn.");
+            return;
+        }
+        final Uri destination = data.getData();
+        setBusy("Đang lưu ZIP…");
+        exec.execute(() -> {
+            try {
+                if (source == null) throw new Exception("Mất file tạm. Bấm Lưu file ZIP để tải lại.");
+                ApiClient.countZipEntries(source);
+                try (FileInputStream input = new FileInputStream(source);
+                     java.io.OutputStream output = getContentResolver().openOutputStream(destination, "w")) {
+                    if (output == null) throw new Exception("Không mở được file đích");
+                    byte[] bytes = new byte[8192]; int n;
+                    while ((n = input.read(bytes)) != -1) output.write(bytes, 0, n);
+                    output.flush();
+                }
+                runOnUiThread(() -> setOk("Đã lưu ZIP · 8 file", "File: " + source.getName()));
+            } catch (Exception e) { runOnUiThread(() -> setError("Không lưu được ZIP", e.getMessage())); }
         });
     }
 
@@ -251,15 +310,18 @@ public class MainActivity extends Activity {
     }
 
     private void setBusy(String s) {
+        busy = true;
         statusTitle.setText(s);
         statusSub.setText("Vui lòng chờ…");
     }
 
     private void setOk(String t, String s) {
+        busy = false;
         statusTitle.setText(t); statusSub.setText(s);
     }
 
     private void setError(String t, String s) {
+        busy = false;
         statusTitle.setText(t); statusSub.setText(s == null ? "" : s);
         Toast.makeText(this, t + ": " + s, Toast.LENGTH_LONG).show();
     }
@@ -304,3 +366,4 @@ public class MainActivity extends Activity {
         f.delete();
     }
 }
+
