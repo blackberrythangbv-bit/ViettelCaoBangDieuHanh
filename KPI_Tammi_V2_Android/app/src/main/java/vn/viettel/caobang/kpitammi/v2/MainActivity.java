@@ -15,21 +15,16 @@ import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.core.content.FileProvider;
 
 import org.json.JSONObject;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipInputStream;
 
 public class MainActivity extends Activity {
     private final ExecutorService exec = Executors.newSingleThreadExecutor();
@@ -78,7 +73,7 @@ public class MainActivity extends Activity {
         titles.setOrientation(LinearLayout.VERTICAL);
         titles.setPadding(dp(16),0,0,0);
         TextView title = text("KPI → Tammi", 34, navy, Typeface.BOLD);
-        TextView ver = text("KPI DNS V2 · APK 2.0.4", 20, muted, Typeface.NORMAL);
+        TextView ver = text("KPI DNS V2 · APK 2.0.5", 20, muted, Typeface.NORMAL);
         titles.addView(title); titles.addView(ver);
         head.addView(titles, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT,1));
         root.addView(head);
@@ -114,7 +109,7 @@ public class MainActivity extends Activity {
         root.addView(actionCard("⌕", "KIỂM TRA NGUỒN\nBÁO CÁO", "Kiểm tra và xác minh nguồn KPI→Tammi", v -> checkSource()));
         root.addView(actionCard("↓", "TẢI BÁO CÁO HÔM\nNAY", "Tải file báo cáo đúng ngày hiện tại", v -> downloadToday()));
         root.addView(actionCard("↓", "LƯU FILE ZIP", "Chọn thư mục Downloads hoặc Drive để lưu", v -> saveZip()));
-        root.addView(actionCard("●", "CHIA SẺ BÁO CÁO\nQUA TAMMI", "Chia sẻ toàn bộ 8 file đã hậu kiểm", v -> shareReports()));
+        root.addView(actionCard("●", "GỬI BÁO CÁO\nTHỦ CÔNG", "Nhóm + 6 AM · chọn người nhận trong Tammi", v -> shareReports()));
 
         scheduleSub = text("", 17, muted, Typeface.NORMAL);
         LinearLayout schedule = actionCard("◷", "LỊCH TỰ ĐỘNG HÀNG\nNGÀY " + hhmm(), "Chạm để thay đổi giờ chạy", v -> chooseTime());
@@ -208,46 +203,7 @@ public class MainActivity extends Activity {
     }
 
     private void shareReports() {
-        if (busy) return;
-        setBusy("Đang chuẩn bị 8 file để chia sẻ…");
-        exec.execute(() -> {
-            try {
-                File zip = ApiClient.downloadLatest(this);
-                latestZip = zip;
-
-                File dir = new File(getCacheDir(), "share_reports");
-                deleteRecursive(dir);
-                if (!dir.mkdirs()) throw new Exception("Không tạo được vùng chia sẻ");
-
-                ArrayList<Uri> uris = new ArrayList<>();
-                try (ZipInputStream zis = new ZipInputStream(new FileInputStream(zip))) {
-                    ZipEntry e;
-                    byte[] buf = new byte[8192];
-                    while ((e = zis.getNextEntry()) != null) {
-                        if (e.isDirectory()) continue;
-                        String safe = new File(e.getName()).getName();
-                        File out = new File(dir, safe);
-                        try (FileOutputStream fos = new FileOutputStream(out)) {
-                            int n; while ((n = zis.read(buf)) > 0) fos.write(buf,0,n);
-                        }
-                        uris.add(FileProvider.getUriForFile(this, getPackageName()+".files", out));
-                    }
-                }
-                if (uris.size() != 8) throw new Exception("Hậu kiểm chia sẻ: " + uris.size() + "/8 file");
-
-                Intent s = new Intent(Intent.ACTION_SEND_MULTIPLE);
-                s.setType("*/*");
-                s.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
-                s.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
-                s.putExtra(Intent.EXTRA_SUBJECT, "Báo cáo KPI ngày " + today());
-                runOnUiThread(() -> {
-                    setOk("Đã chuẩn bị đủ 8 file", "Chọn Tammi và người/nhóm cần chia sẻ.");
-                    startActivity(Intent.createChooser(s, "Chia sẻ báo cáo KPI"));
-                });
-            } catch (Exception e) {
-                runOnUiThread(() -> setError("Không chia sẻ được", e.getMessage()));
-            }
-        });
+        if (!busy) startActivity(new Intent(this, ManualSendActivity.class));
     }
 
     private void saveZip() {
