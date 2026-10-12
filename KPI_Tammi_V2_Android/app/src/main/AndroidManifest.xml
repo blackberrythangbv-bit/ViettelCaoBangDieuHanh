@@ -19,6 +19,8 @@
             </intent-filter>
         </activity>
 
+        <activity android:name=".ManualSendActivity" android:exported="false" />
+
         <receiver android:name=".DownloadReceiver" android:exported="false" />
         <receiver android:name=".BootReceiver" android:exported="false">
             <intent-filter>
