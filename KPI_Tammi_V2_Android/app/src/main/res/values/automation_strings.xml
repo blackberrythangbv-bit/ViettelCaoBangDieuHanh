@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tammi_automation_description">Chỉ khi anh bấm Gửi tự động: đọc màn hình chia sẻ Tammi, tìm đúng tên đã cấu hình, chọn một người và bấm Gửi báo cáo. Không chạy theo lịch, không đọc ứng dụng khác. Có thể dừng và tắt quyền bất kỳ lúc nào.</string>
+</resources>

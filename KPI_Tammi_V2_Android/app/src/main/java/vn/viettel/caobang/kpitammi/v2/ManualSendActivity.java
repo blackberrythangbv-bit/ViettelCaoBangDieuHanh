@@ -29,6 +29,11 @@ public class ManualSendActivity extends Activity {
     private EditText message;
     private boolean loading;
     private String day;
+    private final java.util.ArrayList<String> autoKeys = new java.util.ArrayList<>();
+    private int autoIndex;
+    private boolean autoBatch;
+    private String expectedAutoId;
+    private static final String TAMMI_PACKAGE = "com.viettel.appviettel";
 
     @Override protected void onCreate(Bundle saved) {
         super.onCreate(saved);
@@ -38,18 +43,25 @@ public class ManualSendActivity extends Activity {
         root = column(); root.setPadding(dp(18), dp(22), dp(18), dp(32));
         scroll.setBackgroundColor(Color.rgb(246,248,252)); scroll.addView(root);
         button(root, "‹ Quay lại", () -> finish());
-        label(root, "Gửi báo cáo thủ công", 26, true);
+        label(root, "Gửi báo cáo qua Tammi · 2.0.6 thử nghiệm", 26, true);
         label(root, "Ngày " + day.replace('-', '/'), 18, true);
         label(root, "Chọn từng mục → chọn Tammi → kiểm tra đúng người nhận → bấm Gửi trong Tammi. Quay lại đây để xác nhận đã gửi.", 16, false);
         status = label(root, "", 16, true);
         button(root, "Tải lại báo cáo mới nhất", this::load);
+        button(root, "Thiết lập Trợ năng gửi Tammi", () -> new AlertDialog.Builder(this)
+            .setTitle("Bật hỗ trợ thao tác Tammi")
+            .setMessage("Dịch vụ đọc màn hình Tammi và bấm chọn người, gửi tệp khi anh chủ động chạy. Chỉ hoạt động trong lượt gửi, không chạy theo lịch. Anh tự bật KPI → Tammi · Gửi tự động trong Trợ năng. Giữ điện thoại mở khóa khi chạy.")
+            .setNegativeButton("Đóng", null).setPositiveButton("Mở cài đặt", (d,w) ->
+                startActivity(new Intent(android.provider.Settings.ACTION_ACCESSIBILITY_SETTINGS))).show());
+        button(root, "Gửi tự động toàn bộ", this::startAuto);
+        button(root, "Dừng gửi tự động", () -> { autoBatch = false; TammiAutoService.cancel(); });
         items = column(); root.addView(items);
         setContentView(scroll);
         load();
     }
 
     private void load() {
-        if (loading) return;
+        if (loading || autoBatch || TammiAutoService.running()) return;
         loading = true; reports = null; items.removeAllViews();
         status.setText("Đang tải và kiểm tra báo cáo hôm nay…");
         executor.execute(() -> {
@@ -113,7 +125,7 @@ public class ManualSendActivity extends Activity {
             if (file.getName().endsWith(".png")) button(card, "Xem ảnh", () -> preview(file));
             button(card, "Chia sẻ qua Tammi", () -> shareFile(file, id, recipient));
             Button ack = button(card, "Xác nhận đã gửi", () -> confirm(id, recipient));
-            ack.setEnabled("opened".equals(prefs.getString(id,"")));
+            ack.setEnabled(canConfirm(prefs.getString(id,"")));
         } catch (Exception e) { error(e); }
     }
 
@@ -164,7 +176,7 @@ public class ManualSendActivity extends Activity {
 
     private void confirm(String id, String recipient) {
         if (!current()) return;
-        if (!"opened".equals(prefs.getString(id,""))) {
+        if (!canConfirm(prefs.getString(id,""))) {
             Toast.makeText(this,"Hãy chia sẻ mục này trước khi xác nhận.",Toast.LENGTH_LONG).show(); return;
         }
         new AlertDialog.Builder(this).setTitle("Anh đã gửi trong Tammi?")
@@ -183,6 +195,9 @@ public class ManualSendActivity extends Activity {
     }
     private String stateLabel(String id) {
         String state = prefs.getString(id,"");
+        if ("auto_submitted".equals(state)) return "Đã thao tác gửi · cần kiểm tra trong Tammi";
+        if ("auto_pending".equals(state) || "auto_uncertain".equals(state)) return "Kết quả chưa rõ · không tự gửi lại";
+        if ("auto_blocked".equals(state)) return "Đã dừng trước khi gửi · " + prefs.getString("auto_reason", "");
         return "confirmed_by_user".equals(state) ? "✓ Anh xác nhận đã gửi" :
             "opened".equals(state) ? "Đã mở chia sẻ · chưa xác nhận gửi" : "Chưa gửi";
     }
@@ -196,6 +211,74 @@ public class ManualSendActivity extends Activity {
             }
         } catch (Exception e) { error(e); }
         status.setText("Anh đã xác nhận " + count + "/8 file. Tin chữ được xác nhận riêng.");
+    }
+    private static boolean canConfirm(String state) {
+        return "opened".equals(state) || "auto_submitted".equals(state) || "auto_uncertain".equals(state) || "auto_pending".equals(state);
+    }
+    private String recipientFor(String key) {
+        for (ReportRecipients.Recipient am : ReportRecipients.AMS) if (am.code.equals(key)) return am.tammiName;
+        return ReportRecipients.GROUP;
+    }
+    private void startAuto() {
+        if (!current() || loading || autoBatch || TammiAutoService.running()) return;
+        if (!TammiAutoService.ready()) { error(new Exception("Bật Trợ năng KPI → Tammi trước khi chạy.")); return; }
+        android.app.KeyguardManager lock = (android.app.KeyguardManager)getSystemService(KEYGUARD_SERVICE);
+        if (lock.isKeyguardLocked()) { error(new Exception("Mở khóa điện thoại trước khi gửi.")); return; }
+        try {
+            android.content.pm.ApplicationInfo app = getPackageManager().getApplicationInfo(TAMMI_PACKAGE,0);
+            if (!app.enabled || !getPackageManager().getApplicationLabel(app).toString().toLowerCase(java.util.Locale.ROOT).contains("tammi"))
+                throw new Exception("Chưa nhận diện được ứng dụng Viettel Tammi chính thức.");
+            autoKeys.clear();
+            for (String key : ReportRecipients.expectedFiles(day).keySet()) {
+                String id = reports.itemId(key, recipientFor(key)), state = prefs.getString(id, "");
+                if ("auto_pending".equals(state) || "auto_uncertain".equals(state))
+                    throw new Exception("Có mục chưa rõ kết quả. Kiểm tra trong Tammi và xác nhận trước khi tiếp tục.");
+                if (!"auto_submitted".equals(state) && !"confirmed_by_user".equals(state)) autoKeys.add(key);
+            }
+            if (autoKeys.isEmpty()) { error(new Exception("Không có tệp mới chưa gửi.")); return; }
+            new AlertDialog.Builder(this).setTitle("Gửi tự động " + autoKeys.size() + " tệp")
+                .setMessage("Ảnh riêng đúng từng AM; Excel và ảnh tổng vào nhóm " + ReportRecipients.GROUP +
+                    ". Giữ máy mở khóa. Tin chữ vẫn chia sẻ riêng. Nếu không đọc được checkbox hoặc nút Gửi, app dừng. Trạng thái thao tác gửi chưa phải xác nhận máy chủ.")
+                .setNegativeButton("Hủy",null).setPositiveButton("Bắt đầu",(d,w) -> { autoIndex=0; autoBatch=true; nextAuto(); }).show();
+        } catch (Exception e) { error(e); }
+    }
+    private void nextAuto() {
+        if (!autoBatch) return;
+        if (!current()) { autoBatch=false; return; }
+        if (autoIndex >= autoKeys.size()) {
+            autoBatch=false; render(); status.setText("Đã thao tác gửi " + autoKeys.size() + " tệp. Kiểm tra kết quả trong Tammi; chưa xác minh máy chủ."); return;
+        }
+        try {
+            String key=autoKeys.get(autoIndex), recipient=recipientFor(key);
+            File file=reports.files.get(key);
+            if (file==null || !file.isFile()) throw new Exception("Thiếu tệp " + key);
+            String id=reports.itemId(key,recipient);
+            Uri uri=FileProvider.getUriForFile(this,getPackageName()+".files",file);
+            Intent send=new Intent(Intent.ACTION_SEND).setPackage(TAMMI_PACKAGE);
+            send.setType(file.getName().endsWith(".png") ? "image/png" : "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
+            send.putExtra(Intent.EXTRA_STREAM,uri);
+            send.setClipData(ClipData.newUri(getContentResolver(),file.getName(),uri));
+            send.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION);
+            if (send.resolveActivity(getPackageManager())==null) throw new Exception("Tammi không nhận định dạng tệp này.");
+            expectedAutoId=id;
+            TammiAutoService.begin(TAMMI_PACKAGE,recipient,id);
+            startActivity(send);
+        } catch (Exception e) { autoBatch=false; TammiAutoService.cancel(); error(e); }
+    }
+    @Override protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent); setIntent(intent);
+        String id=intent.getStringExtra("auto_item");
+        if (autoBatch && expectedAutoId != null && expectedAutoId.equals(id)) {
+            expectedAutoId=null;
+            if (intent.getBooleanExtra("auto_submitted",false)) {
+                autoIndex++;
+                new android.os.Handler(android.os.Looper.getMainLooper()).postDelayed(this::nextAuto,1200);
+            } else {
+                autoBatch=false; render(); status.setText(intent.getStringExtra("auto_reason"));
+            }
+        } else if (id != null && reports != null) {
+            autoBatch=false; render(); status.setText("Lượt gửi bị gián đoạn. " + intent.getStringExtra("auto_reason"));
+        }
     }
     private void preview(File file) {
         BitmapFactory.Options bounds = new BitmapFactory.Options(); bounds.inJustDecodeBounds = true;
@@ -223,3 +306,4 @@ public class ManualSendActivity extends Activity {
     private int dp(int value) { return Math.round(value*getResources().getDisplayMetrics().density); }
     @Override protected void onDestroy() { executor.shutdownNow(); super.onDestroy(); }
 }
+

@@ -26,3 +26,4 @@ Gateway hiện chỉ cung cấp ZIP 8 file. Dán tin chữ điều hành từ KP
 Mở bảng chia sẻ không chứng minh đã gửi. Sau khi gửi, quay lại app bấm **Xác nhận đã gửi**. Trạng thái là xác nhận của người dùng, không phải biên nhận Tammi. Trạng thái gắn với ngày, người nhận và SHA-256 nội dung; đổi file hoặc người nhận sẽ không thừa hưởng xác nhận cũ. Chia sẻ lại mục đã xác nhận có cảnh báo trùng.
 
 Kiểm tra mã nguồn: `bash tests/run-manual-report-checks.sh`. Build: `gradle assembleDebug`. Cần thử trên điện thoại với Tammi đã đăng nhập để xác minh khả năng nhận ảnh, Excel và tin chữ qua bảng chia sẻ Android.
+

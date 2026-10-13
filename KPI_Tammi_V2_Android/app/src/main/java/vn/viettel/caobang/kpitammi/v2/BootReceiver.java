@@ -9,3 +9,4 @@ public class BootReceiver extends BroadcastReceiver {
         Scheduler.schedule(context.getApplicationContext());
     }
 }
+

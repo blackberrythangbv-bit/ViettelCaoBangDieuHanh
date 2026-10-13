@@ -84,3 +84,4 @@ jobs:
           path: KPI_Tammi_V2_GitHub.apk
           if-no-files-found: error
           retention-days: 30
+

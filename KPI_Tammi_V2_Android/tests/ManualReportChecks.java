@@ -51,3 +51,4 @@ public class ManualReportChecks {
         System.out.println("PASS: "+passed+" manual report checks");
     }
 }
+

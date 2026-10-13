@@ -73,7 +73,7 @@ public class MainActivity extends Activity {
         titles.setOrientation(LinearLayout.VERTICAL);
         titles.setPadding(dp(16),0,0,0);
         TextView title = text("KPI → Tammi", 34, navy, Typeface.BOLD);
-        TextView ver = text("KPI DNS V2 · APK 2.0.5", 20, muted, Typeface.NORMAL);
+        TextView ver = text("KPI DNS V2 · APK 2.0.6", 20, muted, Typeface.NORMAL);
         titles.addView(title); titles.addView(ver);
         head.addView(titles, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT,1));
         root.addView(head);
@@ -109,7 +109,7 @@ public class MainActivity extends Activity {
         root.addView(actionCard("⌕", "KIỂM TRA NGUỒN\nBÁO CÁO", "Kiểm tra và xác minh nguồn KPI→Tammi", v -> checkSource()));
         root.addView(actionCard("↓", "TẢI BÁO CÁO HÔM\nNAY", "Tải file báo cáo đúng ngày hiện tại", v -> downloadToday()));
         root.addView(actionCard("↓", "LƯU FILE ZIP", "Chọn thư mục Downloads hoặc Drive để lưu", v -> saveZip()));
-        root.addView(actionCard("●", "GỬI BÁO CÁO\nTHỦ CÔNG", "Nhóm + 6 AM · chọn người nhận trong Tammi", v -> shareReports()));
+        root.addView(actionCard("●", "GỬI BÁO CÁO\nQUA TAMMI", "Nhóm + 6 AM · tự tìm người và gửi", v -> shareReports()));
 
         scheduleSub = text("", 17, muted, Typeface.NORMAL);
         LinearLayout schedule = actionCard("◷", "LỊCH TỰ ĐỘNG HÀNG\nNGÀY " + hhmm(), "Chạm để thay đổi giờ chạy", v -> chooseTime());
@@ -322,4 +322,5 @@ public class MainActivity extends Activity {
         f.delete();
     }
 }
+
 
