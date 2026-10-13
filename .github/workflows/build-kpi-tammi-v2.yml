@@ -2,6 +2,10 @@ name: Build KPI Tammi V2 APK
 
 on:
   workflow_dispatch:
+  pull_request:
+    paths:
+      - "KPI_Tammi_V2_Android/**"
+      - ".github/workflows/build-kpi-tammi-v2.yml"
   push:
     branches: [ "main" ]
     paths:
@@ -59,6 +63,9 @@ jobs:
           unzip -q /tmp/gradle.zip -d /opt/gradle
           echo "/opt/gradle/gradle-8.7/bin" >> "$GITHUB_PATH"
 
+      - name: Verify manual report routing
+        run: bash KPI_Tammi_V2_Android/tests/run-manual-report-checks.sh
+
       - name: Build debug APK
         shell: bash
         run: |
@@ -77,3 +84,4 @@ jobs:
           path: KPI_Tammi_V2_GitHub.apk
           if-no-files-found: error
           retention-days: 30
+

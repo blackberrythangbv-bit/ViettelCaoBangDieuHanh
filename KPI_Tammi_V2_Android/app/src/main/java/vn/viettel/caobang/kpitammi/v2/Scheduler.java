@@ -43,3 +43,4 @@ public final class Scheduler {
         return c.getSharedPreferences(PREF, Context.MODE_PRIVATE);
     }
 }
+
