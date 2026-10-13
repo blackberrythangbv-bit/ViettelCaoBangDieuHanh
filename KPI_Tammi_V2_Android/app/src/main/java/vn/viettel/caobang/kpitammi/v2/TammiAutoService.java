@@ -20,6 +20,9 @@ public class TammiAutoService extends AccessibilityService {
     private long deadline;
     private long closedSince;
     private boolean active;
+    private String observation = "Chưa nhận được màn hình Tammi";
+    private boolean focusedSearch;
+    private AccessibilityNodeInfo searchIdentity;
     private final Runnable tick = () -> inspect();
 
     @Override protected void onServiceConnected() { instance = this; }
@@ -30,7 +33,7 @@ public class TammiAutoService extends AccessibilityService {
         if (instance == null) throw new IllegalStateException("Chưa bật Trợ năng KPI → Tammi");
         if (instance.active) throw new IllegalStateException("Đang có lượt gửi");
         instance.targetPackage = pkg; instance.recipient = name; instance.itemId = id;
-        instance.phase = 0; instance.closedSince = 0; instance.active = true;
+        instance.phase = 0; instance.closedSince = 0; instance.focusedSearch = false; instance.searchIdentity = null; instance.observation = "Chưa nhận được màn hình Tammi"; instance.active = true;
         instance.deadline = SystemClock.elapsedRealtime() + 45000;
         instance.handler.postDelayed(instance.tick, 1000);
     }
@@ -46,7 +49,7 @@ public class TammiAutoService extends AccessibilityService {
     private void inspect() {
         if (!active) return;
         if (SystemClock.elapsedRealtime() > deadline) {
-            stop("Không nhận diện được màn hình Tammi hoặc nút Gửi. Chưa tự gửi lại.", false); return;
+            stop("Hết 45 giây · bước " + phase + " · " + observation + ". Chưa tự gửi lại.", false); return;
         }
         AccessibilityNodeInfo root = getRootInActiveWindow();
         if (root == null || !targetPackage.contentEquals(root.getPackageName() == null ? "" : root.getPackageName())) {
@@ -54,29 +57,48 @@ public class TammiAutoService extends AccessibilityService {
         }
         List<AccessibilityNodeInfo> nodes = new ArrayList<>(); collect(root, nodes);
         AccessibilityNodeInfo search = null;
+        int editableCount = 0, labelCount = 0;
         for (AccessibilityNodeInfo n : nodes) {
-            String hint = String.valueOf(n.getHintText());
-            String text = String.valueOf(n.getText());
-            if (n.isEditable() && (hint.startsWith("Tìm kiếm tên, nhóm") || text.startsWith("Tìm kiếm tên, nhóm"))) {
-                if (search != null) { stop("Có nhiều ô tìm người nhận; đã dừng.", false); return; }
-                search = n;
+            if (!n.isVisibleToUser()) continue;
+            if (n.isEditable() || hasSetText(n)) editableCount++;
+            if (!isShareSearch(n)) continue;
+            labelCount++;
+            AccessibilityNodeInfo input = n;
+            // Some custom text fields expose the hint on a child semantics node.
+            for (int depth=0; input != null && depth<3; depth++, input=input.getParent()) {
+                if (input.isEditable() || hasSetText(input)) break;
             }
+            if (input == null || (!input.isEditable() && !hasSetText(input))) continue;
+            if (search != null && !search.equals(input)) { stop("Có nhiều ô tìm người nhận; đã dừng.", false); return; }
+            search = input;
         }
+        if (search == null && phase > 0 && searchIdentity != null) {
+            for (AccessibilityNodeInfo n : nodes)
+                if (n.equals(searchIdentity) && n.isVisibleToUser() && (n.isEditable() || hasSetText(n))) search = n;
+        }
+        observation = "Đọc " + nodes.size() + " nút; ô nhập=" + editableCount + "; nhãn tìm người=" + labelCount;
         // The share picker must contain its own search input. Never operate the chat composer.
         if (phase == 0) {
             if (search == null) { later(); return; }
+            if (!focusedSearch) {
+                search.performAction(AccessibilityNodeInfo.ACTION_FOCUS);
+                search.performAction(AccessibilityNodeInfo.ACTION_CLICK);
+                focusedSearch = true; later(); return;
+            }
             Bundle args = new Bundle();
             args.putCharSequence(AccessibilityNodeInfo.ACTION_ARGUMENT_SET_TEXT_CHARSEQUENCE, recipient);
             if (!search.performAction(AccessibilityNodeInfo.ACTION_SET_TEXT, args)) {
                 stop("Tammi không cho tự nhập ô tìm kiếm trên máy này.", false); return;
             }
+            searchIdentity = AccessibilityNodeInfo.obtain(search);
             phase = 1; later(); return;
         }
         if (phase == 1) {
             if (search == null) { later(); return; }
             List<AccessibilityNodeInfo> matches = new ArrayList<>();
             for (AccessibilityNodeInfo n : nodes)
-                if (n.isVisibleToUser() && !n.isEditable() && AutoRouteMatcher.exact(String.valueOf(n.getText()), recipient)) matches.add(n);
+                if (n.isVisibleToUser() && !n.isEditable() && (AutoRouteMatcher.exact(String.valueOf(n.getText()), recipient) ||
+                     AutoRouteMatcher.exact(String.valueOf(n.getContentDescription()), recipient))) matches.add(n);
             if (matches.size() > 1) { stop("Có nhiều kết quả trùng tên: " + recipient, false); return; }
             if (matches.isEmpty()) { later(); return; }
             AccessibilityNodeInfo row = matches.get(0);
@@ -104,7 +126,8 @@ public class TammiAutoService extends AccessibilityService {
                 for (int depth = 0; p != null && depth < 4; depth++, p = p.getParent()) {
                     List<AccessibilityNodeInfo> children = new ArrayList<>(); collect(p, children);
                     for (AccessibilityNodeInfo c : children)
-                        if (!c.isEditable() && AutoRouteMatcher.exact(String.valueOf(c.getText()), recipient)) correct = true;
+                        if (!c.isEditable() && (AutoRouteMatcher.exact(String.valueOf(c.getText()), recipient) ||
+                             AutoRouteMatcher.exact(String.valueOf(c.getContentDescription()), recipient))) correct = true;
                 }
             }
             if (checked != 1 || !correct) { stop("Không xác minh được chỉ 1 người nhận đúng tên.", false); return; }
@@ -143,6 +166,17 @@ public class TammiAutoService extends AccessibilityService {
             }
             later();
         }
+    }
+    private static boolean hasSetText(AccessibilityNodeInfo n) {
+        for (AccessibilityNodeInfo.AccessibilityAction a : n.getActionList())
+            if (a.getId() == AccessibilityNodeInfo.ACTION_SET_TEXT) return true;
+        return false;
+    }
+    private static boolean isShareSearch(AccessibilityNodeInfo n) {
+        CharSequence[] labels = { n.getHintText(), n.getText(), n.getContentDescription() };
+        for (CharSequence label : labels)
+            if (AutoRouteMatcher.normalize(label == null ? "" : label.toString()).startsWith("tìm kiếm tên, nhóm")) return true;
+        return false;
     }
     private void later() { handler.removeCallbacks(tick); handler.postDelayed(tick, 700); }
     private static void collect(AccessibilityNodeInfo node, List<AccessibilityNodeInfo> out) {

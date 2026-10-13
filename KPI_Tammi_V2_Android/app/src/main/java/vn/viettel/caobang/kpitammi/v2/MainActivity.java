@@ -73,7 +73,7 @@ public class MainActivity extends Activity {
         titles.setOrientation(LinearLayout.VERTICAL);
         titles.setPadding(dp(16),0,0,0);
         TextView title = text("KPI → Tammi", 34, navy, Typeface.BOLD);
-        TextView ver = text("KPI DNS V2 · APK 2.0.6", 20, muted, Typeface.NORMAL);
+        TextView ver = text("KPI DNS V2 · APK 2.0.7", 20, muted, Typeface.NORMAL);
         titles.addView(title); titles.addView(ver);
         head.addView(titles, new LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.WRAP_CONTENT,1));
         root.addView(head);

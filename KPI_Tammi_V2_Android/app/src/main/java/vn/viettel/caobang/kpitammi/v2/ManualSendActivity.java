@@ -43,7 +43,7 @@ public class ManualSendActivity extends Activity {
         root = column(); root.setPadding(dp(18), dp(22), dp(18), dp(32));
         scroll.setBackgroundColor(Color.rgb(246,248,252)); scroll.addView(root);
         button(root, "‹ Quay lại", () -> finish());
-        label(root, "Gửi báo cáo qua Tammi · 2.0.6 thử nghiệm", 26, true);
+        label(root, "Gửi báo cáo qua Tammi · 2.0.7 thử nghiệm", 26, true);
         label(root, "Ngày " + day.replace('-', '/'), 18, true);
         label(root, "Chọn từng mục → chọn Tammi → kiểm tra đúng người nhận → bấm Gửi trong Tammi. Quay lại đây để xác nhận đã gửi.", 16, false);
         status = label(root, "", 16, true);

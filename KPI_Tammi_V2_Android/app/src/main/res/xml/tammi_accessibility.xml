@@ -5,5 +5,5 @@
     android:packageNames="com.viettel.appviettel"
     android:notificationTimeout="200"
     android:canRetrieveWindowContent="true"
-    android:accessibilityFlags="flagReportViewIds"
+    android:accessibilityFlags="flagReportViewIds|flagIncludeNotImportantViews"
     android:description="@string/tammi_automation_description" />
